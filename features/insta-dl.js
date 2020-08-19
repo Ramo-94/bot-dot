@@ -1,58 +1,72 @@
 const ask = require('../util/ask')
+const interp = require('../util/interpretCommand')
 
 const {installMouseHelper} = require('../util/installMouseHelper');
 const fs = require('fs')
 const bent = require('bent')
 const getBuffer = bent('buffer')
+const puppeteer = require('puppeteer')
 
 module.exports = (client) => {
-    
-    const puppeteer = require('puppeteer')
 
     client.on('message', async (msg) => {
     
-        if (msg.content === "garab keda yasta" && msg.author.username == "Omar") {
+        let cmd = interp(msg.content, true)
 
+        if (cmd && cmd.base === "dl" && !msg.author.bot) {
+
+            let reply1 = await msg.channel.send("Searching..")
+
+            await msg.delete()
+
+            let download = cmd.args[0]
+            
             const browser = await puppeteer.launch({
-                headless:true
-                // args: [ '--proxy-server=http://201.157.44.108:3128' ]
+                headless: true
             })
             
             const page = await browser.newPage()
 
             let url
-
             let reqListen = page.on('request', async request => {
                 if (request.resourceType() === 'media') 
                 {
+                    
+                    await page.waitForResponse(response => response.url() != null).catch(async err =>{
+                        console.log("Response wait error: "+err)
+                        await msg.reply("Couldn't get the video. Try again or contact dev")
+                        browser.close()
+                        return false
+                    })
 
-                    await msg.reply("Found media request")
+                    reqListen.removeListener()
 
-                    if (typeof request.response() === 'null') {
-                        await msg.reply("Error .. hold on .. ")
-                        await page.waitFor(1000)
-                        await page.mouse.click(700,400)
-
-                        url = request.response().url()
-
-                    }
+                    await reply1.delete()
+                    let reply2 = await msg.reply("Found media request")
 
                     url = request.response().url()
 
                     if (url) {
-                        await msg.reply("Got something...")
+                        // await msg.reply("Got something...")
+        
+                        let reply3 = await msg.reply("Will try to download")
+        
+                        let buf = await getBuffer(url)
 
-                        await msg.reply("Will try to download")
-    
-                        let response = await getBuffer(url)
-    
-                        let buf = response
                         fs.writeFileSync("./video.mp4", buf)
-                        await msg.reply("file saved. check it out")
+
+                        // await msg.reply("file saved. check it out")
                         
                         await msg.channel.send({
                             files: ['./video.mp4']
                         })
+        
+                        await reply2.delete()
+                        await reply3.delete()
+
+                        fs.unlinkSync("./video.mp4")
+
+                        await browser.close()
                     }
                 }
             })
@@ -64,51 +78,42 @@ module.exports = (client) => {
 
             await installMouseHelper(page);
 
-            await page.goto('https://www.instagram.com/p/CDe2U11AcxH/',{
+            await page.goto(download,{
             timeout: 0,
              waitUntil: 'networkidle2'
             })
-            
-            
-            //Wants login?
-            if (await page.$('input[name="username"]') != null) {
+    
+            // //Wants login?
+            // if (await page.$('input[name="username"]') != null) {
               
-                await page.type('input[name="username"]', process.env.USER)
-                await page.type('input[name="password"]', process.env.PASS)
-                await page.evaluate( () => {
-                    for(var i of document.getElementsByTagName("button"))
-                        if (i.getAttribute("type") == "submit")
-                            i.click()
-                })
+            //     await page.type('input[name="username"]', process.env.USER)
+            //     await page.type('input[name="password"]', process.env.PASS)
+            //     await page.evaluate( () => {
+            //         for(var i of document.getElementsByTagName("button"))
+            //             if (i.getAttribute("type") == "submit")
+            //                 i.click()
+            //     })
                         
-                await page.evaluate( () => {
-                  for(var i of document.getElementsByTagName("button"))
-                       if (i.innerText== "Send Security Code")
-                            i.click()
-                })
+            //     await page.evaluate( () => {
+            //       for(var i of document.getElementsByTagName("button"))
+            //            if (i.innerText== "Send Security Code")
+            //                 i.click()
+            //     })
                 
-                msg.reply("Login required. I will DM the owner for a code.")
+            //     msg.reply("Login required. I will DM the owner for a code.")
 
-                let code
-                ask(client,"Please give me instagram code", msg)
-                .then(res => {code = res})
-                .catch(async () => {await msg.reply("No response, please try again later")})
+            //     let code
+            //     ask(client,"Please give me instagram code", msg)
+            //     .then(res => {code = res})
+            //     .catch(async () => {await msg.reply("No response, please try again later")})
                 
-            }
+            // }
 
             await page.mouse.click(700,400)
-            await page.waitFor(500)
             await page.mouse.click(700,400)
-
-            reqListen.removeListener()
-
-            // await page.screenshot({path:"./test.png"})
-
-
-
-            await msg.reply("done")
-
-            }
-        })
+            await page.mouse.click(700,400)
+            await page.mouse.click(700,400)
+        }
+    }) 
     }
 

@@ -5,12 +5,12 @@ const client = new Discord.Client()
 //envrionment variable token or local
 //token in token.js file for local testing
 
-// const { token } = require("./token");
+const { token } = require("./token");
 
 const features = [
                     require('./features/blockBotCommand')  , require('./features/addToBlock'),
                     require('./features/insta-dl')         , require('./features/antiRaid')  ,
-                    require('./features/unblockBotCommand'),
+                    require('./features/unblockBotCommand')
                  ]
 
 client.on('ready', () => {
