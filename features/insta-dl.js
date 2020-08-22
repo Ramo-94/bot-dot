@@ -18,7 +18,7 @@ module.exports = (client) => {
         if (cmd && cmd.base === "control" && !msg.author.bot) {
 
             const browser = await puppeteer.launch({
-                headless: false,
+                headless: true,
                 args:['--no-sandbox']
             
             })
