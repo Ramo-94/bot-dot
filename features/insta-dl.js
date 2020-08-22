@@ -26,7 +26,7 @@ module.exports = (client) => {
             const page = await browser.newPage()
 
             await msg.reply("Beginning remote control")
-            await page.screenshot({path:`../public/screenControl.png`})
+            await page.screenshot({path:`./public/screenControl.png`})
             let screen = await msg.channel.send(new Discord.MessageEmbed()
                 .setImage('https://bot-dot.herokuapp.com/?pic=screenControl')
             )
