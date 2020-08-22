@@ -1,26 +1,19 @@
 const Discord = require('discord.js')
 const client = new Discord.Client()
 
-//UnComment line below to switch between
-//envrionment variable token or local
-//token in token.js file for local testing
-
-// const { token } = require("./token");
-
 const features = [
                     require('./features/blockBotCommand')  , require('./features/addToBlock'),
                     require('./features/insta-dl')         , require('./features/antiRaid')  ,
-                    require('./features/unblockBotCommand')
+                    require('./features/unblockBotCommand'), require('./util/hoster')
                  ]
 
-client.on('ready', () => {
+
+client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`)
 })
 
+
 features.map( feature => feature(client) )
 
+client.login(process.env.TOKEN)
 
-if (typeof token === 'undefined')
-  client.login(process.env.TOKEN)
-else
-  client.login(token)

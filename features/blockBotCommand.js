@@ -6,8 +6,6 @@ const fs = require('fs')
 
 module.exports = (client) => {
 
-    
-
     let blockFile  = './storage/blockList.json'
     let blockList
     
