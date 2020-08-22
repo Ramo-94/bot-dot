@@ -4,7 +4,7 @@ const client = new Discord.Client()
 const features = [
                     require('./features/blockBotCommand')  , require('./features/addToBlock'),
                     require('./features/insta-dl')         , require('./features/antiRaid')  ,
-                    require('./features/unblockBotCommand'), require('./util/hoster')
+                    require('./features/unblockBotCommand'), require('./util/hoster')        
                  ]
 
 

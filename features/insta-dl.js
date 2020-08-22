@@ -34,7 +34,7 @@ module.exports = (client) => {
 
             //Getting user input
             let questions = setInterval(async() => {
-                await ask("What do you want to do?")
+                await ask(client,"What do you want to do?")
                           .then(answer => {
                                 if (answer === "stop") {
                                     return false

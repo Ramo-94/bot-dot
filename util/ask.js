@@ -1,6 +1,4 @@
-const client = require('../app')
-
-module.exports = async (question) => {
+module.exports = async (client,question) => {
 
     let dm = await msg.author.createDM()
     await dm.send(question)
