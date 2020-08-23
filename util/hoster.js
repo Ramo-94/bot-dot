@@ -6,6 +6,8 @@ module.exports = () => {
     //Image server to work on Discord's rich embed refresh issue
     let server = http.createServer((req,res)=>{
 
+    
+
         let pic
         for (let i = 0; i < req.rawHeaders.length; i++) {
             if (req.rawHeaders[i] === "pic")
@@ -23,7 +25,11 @@ module.exports = () => {
 
             stream.on('end', ()=>{
                 stream.close()
-                req.connection.unref()
+                res.end()
+            })
+
+            res.on('close', ()=>{
+                console.log("ended")
             })
         })
 
