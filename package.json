@@ -10,6 +10,7 @@
     "puppeteer": "^5.2.1"
   },
   "scripts": {
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
