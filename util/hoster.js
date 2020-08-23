@@ -18,5 +18,5 @@ module.exports = () => {
         })
     })
 
-    server.listen(80,'localhost')
+    server.listen(3000,'localhost')
 }
