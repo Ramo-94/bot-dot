@@ -6,12 +6,13 @@ module.exports = () => {
     //Image server to work on Discord's rich embed refresh issue
     let server = http.createServer((req,res)=>{
 
-        let fullUrl = req.socket.address()
-        console.log("Log url: ",fullUrl)
+        let pic
+        for (let i = 0; i < req.rawHeaders.length; i++) {
+            if (req.rawHeaders[i] === "pic")
+            pic = req.rawHeaders[i+1]
+            break;
+        }
         
-        if (fullUrl.includes('?pic=')) 
-            let picIndex = req.socket.address().indexOf("?pic=")
-        let pic = fullUrl.substring(picIndex)
         console.log("Log pic: ", pic)
 
         let stream = fs.createReadStream(`./public/${pic}.png`)
