@@ -8,8 +8,11 @@ module.exports = () => {
 
         let fullUrl = req.socket.address()
         console.log("Log url: ",fullUrl)
-        let url = new URL(`https://${fullUrl.address}:${fullUrl.port}${req.url.substring(1)}`)
-        let pic = url.searchParams.get('pic')
+        
+        if (fullUrl.includes('?pic=')) 
+            let picIndex = req.socket.address().indexOf("?pic=")
+        let pic = fullUrl.substring(picIndex)
+        console.log("Log pic: ", pic)
 
         let stream = fs.createReadStream(`./public/${pic}.png`)
         stream.on('open',() => {
