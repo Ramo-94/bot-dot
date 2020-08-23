@@ -18,7 +18,7 @@ module.exports = () => {
         })
     })
 
-    server.listen(process.env.PORT,'localhost')
+    server.listen(process.env.PORT)
 
     console.log("Server started listening on " + process.env.PORT)
 }
