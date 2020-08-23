@@ -19,7 +19,14 @@ module.exports = () => {
         stream.on('open',() => {
             res.setHeader("Content-Type","image/png")
             stream.pipe(res)
+
+
+            stream.on('end', ()=>{
+                stream.close()
+                req.connection.unref()
+            })
         })
+
     })
 
     server.listen(process.env.PORT)
