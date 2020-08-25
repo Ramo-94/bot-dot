@@ -2,9 +2,9 @@ const isPriviledged = require('../util/isPriviledged')
 const getUser = require('../util/getUser')
 const interp = require('../util/interpretCommand')
 
+const fs = require('fs')
+
 module.exports = (client) => {
-    
-    const fs = require('fs')
 
     let blockFile  = './storage/blockList.json'
     let blockList  = []
