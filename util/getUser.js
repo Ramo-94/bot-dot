@@ -1,5 +1,5 @@
 const Discord = require('discord.js')
-
+const { OWNER } = require('../variables')
 
 module.exports = (target,client) => {
 
@@ -15,7 +15,7 @@ module.exports = (target,client) => {
         let users = []
         
         if (target === "OWNER") 
-            target = process.env.OWNER
+            target = OWNER
         
         //Look for the user in all guilds
         client.guilds.cache.map(guild => {

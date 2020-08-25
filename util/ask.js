@@ -1,16 +1,19 @@
-module.exports = async (client,question) => {
+const { OWNER } = require('../variables')
 
-    let dm = await msg.author.createDM()
+module.exports = async (client,message,question) => {
+
+    let dm = await message.author.createDM()
     await dm.send(question)
     let asked = true
 
     return new Promise((res, rej)=>{
-            client.on('message', msg => {
-                if (msg.channel.type === "dm" && msg.author.username === "Omar" && asked)
+
+            client.on('message', answerListener = (msg) => {
+                if (msg.channel.type === "dm" && msg.author.tag === OWNER && asked)
                     res(msg.content)
             })
-            //Wait 3 minutes for a response
-            setTimeout(() => {
+            //Wait 15 minutes for a response
+            let noResponse = setTimeout(() => {
                 rej("Got no response")
             }, 900000);               
     })

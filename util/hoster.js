@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
-const port = process.env.PORT
-const path = require('path');
+const path = require('path')
+const { PORT } = require('../variables')
 
 module.exports = () => {
 
@@ -10,7 +10,7 @@ module.exports = () => {
 
     app.use(express.static(path.join(__dirname, '../public')))
     
-    app.listen(port)
+    app.listen(PORT)
 
-    console.log("Server started listening on " + port)
+    console.log("Server started listening on " + PORT)
 }
