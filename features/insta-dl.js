@@ -10,8 +10,6 @@ const getUser = require('../util/getUser')
 const Discord = require('discord.js')
 const { isNullOrUndefined } = require('util')
 const { OWNER, APPLINK } = require('../variables')
-const { url } = require('inspector')
-const { URLSearchParams } = require('url')
 const { execSync } = require('child_process')
 
 module.exports = (client) => {
@@ -328,35 +326,25 @@ module.exports = (client) => {
             //and wait till everything is loaded
             //and the page is idle
 
+            await installMouseHelper(page)
 
             if (cmd.args[0].indexOf('instagram') !== -1) {
 
                 await page.goto(cmd.args[0],{
                     timeout: 0,
                     waitUntil: 'networkidle2'
-                   })
-                   .catch(async()=>{
-       
-                       msg.reply("Network error")
-                       await browser.close()
-                   })
+                }).catch(async()=>{
+                    msg.reply("Network error")
+                    await browser.close()
+                })
 
-                ((async()=>{
+                await page.click('div[class="fXIG0"]') 
 
-                    //Click video box multiple times
-                    //to force the media request to
-                    //be sent and intercepted
-    
-                    await page.mouse.click(700,400)
-                    await page.mouse.click(700,400)
-                    await page.mouse.click(700,400)
-                    await page.mouse.click(700,400)
-                }))()
             }
 
             if (cmd.args[0].indexOf('tiktok') !== -1) {
 
-                await installMouseHelper(page)
+                
                 waitTiktok = true
 
                 let fullUrl = cmd.args[0].split('/')
