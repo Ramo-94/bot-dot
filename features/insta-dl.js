@@ -217,10 +217,26 @@ module.exports = (client) => {
 
         else if (cmd && cmd.base === "dl" && !msg.author.bot) {
 
+
+            let downloadEmbed = new Discord.MessageEmbed()
+            .setTitle("Click to go to requested video link")
+            .setAuthor("By " + msg.author.username, msg.author.avatarURL())
+            .setURL(cmd.args[0])
+            .setColor(getUser(msg,client).displayColor)
+            
+
+            let authorDM = await msg.author.createDM()
+
             let waitTiktok = false
 
             //browser and page setup
-            const browser = await puppeteer.launch({headless: true})
+            const browser = await puppeteer.launch({
+                headless: true,
+                args:[
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox'
+                    ]
+                })
             const page = await browser.newPage()
             await page.setViewport({
                 width:  1920,
@@ -234,56 +250,59 @@ module.exports = (client) => {
             //Is the request a media request?
             let reqListen = page.on('request', async request => {
 
-                if (request.resourceType() === 'media' && !waitTiktok) {
-                    
-                    //Wait for the media URL to load
-                    let url
-                    await page.waitForResponse(response => response.url() != null)
-                        .catch(async err => {
-                            console.log("Response wait error: " + err)
-                            await msg.reply("Couldn't get the video. Try again or contact dev")
-                            browser.close()
-                    }).then((res)=>{
-                        url = res.url()
-                    })
+                if (request.resourceType() === 'media' && request.method() == "GET" && !waitTiktok) {
+
+                    let url = request.url()
 
                     //Remove this listener after getting the needed request
                     page.removeListener('request', reqListen)
 
-                    //Remove searching notice
-                    await reply1.delete()
-
-                    let reply2 = await msg.reply("Found media request")
-
                     if (url) {
 
-                        let reply3 = await msg.reply("Will try to download")
+                        //Update searching notice
+
+                        await reply1.edit("Found. Will try to download")
         
                         //Get mp4 buffer using bent & Write buffer to local file
-                        let buf = await getBuffer(request.response().url())
-                        fs.writeFileSync("./video.mp4", buf)
+                        let buf = await getBuffer(url)
+
+                        //Calculate file size to determine whether to write to file
+                        let size = (buf.byteLength / 1e+6).toFixed(2)
+                        // while (size < 0.01) {
+                        //     size = (buf.byteLength / 1e+6).toFixed(2)
+                        //     buf = await getBuffer(url)
+                        //     console.log("SIZE in loop: "+ size)
+                        // }
+                        console.log("SIZE: "+ size)
                         
-                        // execSync(`ffmpeg -i video.mp4 -vcodec libx264 -crf 38 -y out.mp4`,(err)=>{
-                        //     if (err) 
-                        //         console.log(`err: ${err}`)
-                        // })
+                        if (size < 30) 
+                            fs.writeFileSync("./video.mp4", buf)
                         
+                        //Determine if compression is necessary
+                        if (size > 8) {
+                            await msg.channel.send("File too large, will try compression")
+
+                            fs.copyFileSync("./video.mp4","./copyEdit.mp4")
+                            execSync(`ffmpeg -i ./copyEdit.mp4 -vcodec libx264 -crf 32 -y ./video.mp4`, err => {
+                                if (err) 
+                                    console.log(`err: ${err}`)
+                            })
+                        }
+
                         //Upload the file to discord
                         await msg.channel.send({
-                            files: ['./video.mp4']
+                            files: ['./video.mp4'],
+                            embed: downloadEmbed
                         }).catch(async ()=>{
                             console.log("File too large")
-                            await msg.channel.send("File too large")
+                            await authorDM.send("File too large")
                         })
 
-                        //Remove last notice messages
-                        await reply2.delete()
-                        await reply3.delete()
+                        //Remove last notice message
+                        await reply1.delete()
 
                         //Delete local video copy to save space
                         fs.unlinkSync("./video.mp4")
-                        // fs.unlinkSync("./out.mp4")
-
 
                         await browser.close()
                     }
@@ -361,7 +380,7 @@ module.exports = (client) => {
                     video = cmd.args[0].split('?')[0]
                 
                 if (foryou) 
-                    video = userPage + "/video/" + fullUrl[6] 
+                    video = userPage + "/video/" + fullUrl[6]
 
                 let search = () => {return new Promise(async (res)=>{
 
@@ -373,18 +392,14 @@ module.exports = (client) => {
                         }
                     })
 
-                    await page.waitForSelector(`div[class~="video-feed"]`).catch( async()=>{
-                        let dm = await msg.author.createDM()
-                        await dm.send("Could not find the video, try again and check your link")
-                        await browser.close()
-                    })
-                    
-                    await page.evaluate(()=>{
-                        let ref = document.getElementsByClassName('video-feed')[0].firstChild.querySelectorAll('a')[0].href
-                        firstHref(ref)
-                    }).catch(async (err) => {
-                        console.log(err)
-                        await msg.reply("Error, please try again")
+                    await page.waitForSelector(`div[class~="video-feed-item"]`).then( 
+                        async () => {
+                            await page.evaluate(()=>{
+                                let ref = document.getElementsByClassName('video-feed')[0].firstChild.querySelectorAll('a')[0].href
+                                firstHref(ref)
+                            }).catch(async err => {
+                                console.log("====SELECTOR NOT FOUND. DIDN'T LOAD YET?====")
+                            })
                     })
 
                     let scroll = async () => {
@@ -403,13 +418,13 @@ module.exports = (client) => {
                                     await scroll()
                         })
                     }
-                    await scroll().catch(console.log)
+                    await scroll().catch(()=>{}) //Execution context will be destroyed if page navigates
                     })
                 }
                 
                 await search().then( async()=>{
 
-                    waitTiktok = false                
+                    waitTiktok = false
                     await page.hover(`a[href="${video}"]`)
 
                 })
