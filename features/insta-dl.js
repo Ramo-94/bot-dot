@@ -1,26 +1,34 @@
 const ask = require('../util/ask')
-const interp = require('../util/interpretCommand')
+const interpret = require('../util/interpretCommand')
 
 const {installMouseHelper} = require('../util/installMouseHelper')
 const fs = require('fs')
 const bent = require('bent')
 const getBuffer = bent('buffer')
-const puppeteer = require('puppeteer')
+const puppeteer = require('puppeteer-extra')
+const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 const getUser = require('../util/getUser')
 const Discord = require('discord.js')
 const { isNullOrUndefined } = require('util')
 const { OWNER, APPLINK } = require('../variables')
 const { execSync } = require('child_process')
+const enqueuer = require('../util/TaskEnqueuer')
 
 module.exports = (client) => {
 
+    let queue = new enqueuer(client, "message", 3)
+
     client.on('message', async (msg) => {
-    
-        let cmd = interp(msg.content, true)
+        
+        let reply1
+        let cmd = interpret(msg.content, true)
+ 
+        puppeteer.use(StealthPlugin())
 
-
-        if(cmd && cmd.base === "testo"){
-            
+        if (cmd && cmd.base === "testo" && !msg.author.bot) {
+            // let m = new Discord.Message()
+            msg.content = "yasta dl https://www.tiktok.com/@longwatermelon/video/6855920536732601606?lang=en"
+            client.emit("message", msg)
         }
 
         //////////////////////////////////
@@ -213,8 +221,11 @@ module.exports = (client) => {
         // IF COMMAND IS TO DOWNLOAD //
         ///////////////////////////////
 
-        else if (cmd && cmd.base === "dl" && !msg.author.bot) {
+        else if (cmd && cmd.base === "dl" && !msg.author.bot && !queue.isFull()) {
 
+            reply1 = await msg.channel.send("Request enqueued")
+            if (!msg.emitted)
+                queue.enqueue(msg)
 
             let downloadEmbed = new Discord.MessageEmbed()
             .setTitle("Click to go to requested video link")
@@ -239,10 +250,10 @@ module.exports = (client) => {
             await page.setViewport({
                 width:  1920,
                 height: 1080
-            })
+            })                    
 
             //Initial command clean up and response from discord chat
-            let reply1 = await msg.channel.send("Searching..")
+            await reply1.edit("Searching..")
             await msg.delete()
 
             //Is the request a media request?
@@ -266,11 +277,7 @@ module.exports = (client) => {
 
                         //Calculate file size to determine whether to write to file
                         let size = (buf.byteLength / 1e+6).toFixed(2)
-                        // while (size < 0.01) {
-                        //     size = (buf.byteLength / 1e+6).toFixed(2)
-                        //     buf = await getBuffer(url)
-                        //     console.log("SIZE in loop: "+ size)
-                        // }
+
                         console.log("SIZE: "+ size)
                         
                         if (size < 30) 
@@ -294,15 +301,18 @@ module.exports = (client) => {
                         }).catch(async ()=>{
                             console.log("File too large")
                             await authorDM.send("File too large")
+                            queue.dequeue()
                         })
 
                         //Remove last notice message
                         await reply1.delete()
 
                         //Delete local video copy to save space
-                        fs.unlinkSync("./video.mp4")
+                        if (fs.existsSync("./video.mp4")) 
+                            fs.unlinkSync("./video.mp4")
 
                         await browser.close()
+                        queue.dequeue()
                     }
                 }
             })
@@ -336,6 +346,7 @@ module.exports = (client) => {
                 }).catch(async()=>{
                     msg.reply("Network error")
                     await browser.close()
+                    queue.dequeue()
                 })
 
                 await page.click('div[class="fXIG0"]') 
@@ -344,7 +355,6 @@ module.exports = (client) => {
 
             if (cmd.args[0].indexOf('tiktok') !== -1) {
 
-                
                 waitTiktok = true
 
                 let fullUrl = cmd.args[0].split('/')
@@ -419,31 +429,15 @@ module.exports = (client) => {
 
             }
         }
+
+        else if (cmd && cmd.base === "dl" && !msg.author.bot && queue.isFull()) {
+            queue.enqueue(msg)
+            let full = await msg.channel.send("Queue full, please wait")
+            setTimeout(async () => {
+                await full.delete()
+            }, 2000);
+        }
+            
     })
 
 }
-
-
-            // Embed/Screen refresh interval code to print screen in one embed //
-
-            // let counter = 0
-            // let printScreen = setInterval(async() => {
-
-            //     await page.screenshot({path:`./public/screenControl${counter}.png`})
-            //     .then(async()=>{
-            //         await screen.edit(
-            //             new Discord.MessageEmbed()
-            //             .setImage(`${APPLINK}/?pic=screenControl${counter}`)
-            //         )
-            //         console.log("updated")
-            //     })
-
-            //     counter++
-
-            //     let cleanUp = setInterval(async() => {
-            //         if (!printScreen.hasRef())
-            //             cleanUp.unref()
-            //         if (counter > 0 && fs.existsSync(`./public/screenControl${counter-1}.png`))
-            //             fs.unlinkSync(`./public/screenControl${counter-1}.png`)
-            //     }, 3000);
-            // }, 3000);
