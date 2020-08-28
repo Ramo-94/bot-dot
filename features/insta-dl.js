@@ -232,7 +232,6 @@ module.exports = (client) => {
             .setAuthor("By " + msg.author.username, msg.author.avatarURL())
             .setURL(cmd.args[0])
             .setColor(getUser(msg,client).displayColor)
-            
 
             let authorDM = await msg.author.createDM()
 
