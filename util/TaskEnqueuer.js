@@ -27,7 +27,6 @@ module.exports = class TaskEnqueuer {
                 let popped = this.#queue.pop()
                 popped.emitted = true
                 this.run(popped)
-                this.enqueue(popped)
             }
             else
                 break
