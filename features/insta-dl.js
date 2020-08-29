@@ -51,7 +51,7 @@ module.exports = (client) => {
 
                 // Browser and page setup
                 const browser = await puppeteer.launch({
-                    headless: true,
+                    headless: false,
                     args:[
                         '--no-sandbox',
                         '--disable-setuid-sandbox'
@@ -134,6 +134,14 @@ module.exports = (client) => {
                     }
                 })
 
+                // URL Regexp validation
+                let tiktokTestOne = RegExp(/^((https:\/\/)|(www.)|(https:\/\/www.))|tiktok.com(\/\@[\w\d]+)(\/video)(\/[\w\d]+)\?*[\w\d]*/,"g")
+                
+                // Vm link
+                let tiktokTestTwo = RegExp(/^(https:\/\/)?vm.tiktok.com\/([\w\d]+)\??[\w\d]*/,"g")
+                
+                // Testing for "for you"
+                let tiktokTestThree = RegExp(/^((https:\/\/)|(www.)|(https:\/\/www.))|tiktok.com(\/foryou(\?[\w\d]*\=[\w\d]*)?\#?)*(\/\@[\w\d]+)(\/video)(\/[\w\d]+)\?*[\w\d]*/,"g")
 
                 // Is the requested video from Instagram ?
                 if (cmd.args[0].indexOf('instagram') !== -1) {
@@ -150,108 +158,60 @@ module.exports = (client) => {
                     })
     
                     // Click video to load media request
-                    await page.click('div[class="fXIG0"]') 
+                    await page.click('div[class="fXIG0"]').catch(async ()=>{
+
+                        let notice = await msg.channel.send(MSGS.NAV_ERROR)
+                        setTimeout(async () => {
+                            await notice.delete()
+                        }, 2000);
+
+                    })
                 }
     
-
                 // Is the requested video from Tiktok ?
-                else if (cmd.args[0].indexOf('tiktok') !== -1) {
+                else if (tiktokTestOne.test(cmd.args[0]) || tiktokTestTwo.test(cmd.args[0]) || tiktokTestThree.test(cmd.args[0])) {
                     
                     // Prevent request listener from listening
                     // to media requests for now
                     waitTiktok = true
-    
-                    let fullUrl = cmd.args[0].split('/')
 
                     // Whether the video is from the "for you" page
-                    let foryou = (fullUrl[3].indexOf("foryou") !== -1) ? true : false
-                    let userPage
+                    let foryou = tiktokTestThree.test(cmd.args[0])
+                    let video = cmd.args[0]
     
-                    
                     if (foryou) 
-                        userPage = "https://www.tiktok.com/".concat(fullUrl[4])
-                    else
-                        userPage = "https://www.tiktok.com/".concat(fullUrl[3])
+                        video = "https://www.tiktok.com/".concat(cmd.args[0].substring(cmd.args[0].indexOf("@")))
+                    
+                    if (tiktokTestTwo.test(cmd.args[0])){
+
+                        //Navigate to get normal full URL
+                        waitTiktok = false
+                        
+                        await page.goto(cmd.args[0], {timeout:0, waitUntil: 'networkidle2'})
+                            .catch(async()=>{
+                                msg.reply(MSGS.NAV_ERROR)
+                                await browser.close()
+                                queue.dequeue()
+                            })
+                        
+                        await page.waitForNavigation({timeout:0, waitUntil: 'networkidle2'})
+                            .catch(async()=>{
+                                msg.reply(MSGS.NAV_ERROR)
+                                await browser.close()
+                                queue.dequeue()
+                            })
+                        
+                        video = await page.url()
+                    }
                     
                     // Log requested link
                     console.log(cmd.args[0])
-    
-                    // Navigate to user page to avoid
-                    // direct video link load failure.
-                    // Probably an anti-scrapping mechanism
-                    await page.goto(userPage,{
-                        timeout: 0,
+
+                    waitTiktok = false
+                    await page.goto(video,{
+                        timeout:0,
                         waitUntil: 'networkidle2'
                     })
-                    
-                    // Make the direct video link
-                    let video = cmd.args[0]
-                    if (cmd.args[0].indexOf('?') !== -1) 
-                        video = cmd.args[0].split('?')[0]
-                    
-                    if (foryou) 
-                        video = userPage + "/video/" + fullUrl[6]
-                    
-                    // Look for the video on the user's list
-                    let search = () => {return new Promise(async (res)=>{
-    
-                        // If it's the first video
-                        // We expose a function to extract the link
-                        // to the video from the local context code evaluated
-                        // on the page itself
-                        await page.exposeFunction('firstHref', async(val)=>{
-                            if (cmd.args[0].includes(val)) {
-                                waitTiktok = false
-                                await page.reload()
-                            }
-                        })
-    
-                        // Wait for the list selector
-                        await page.waitForSelector(`div[class~="video-feed-item"]`).then( 
-                            async () => {
-
-                                // Find it
-                                await page.evaluate(()=>{
-                                    let ref = document.getElementsByClassName('video-feed')[0].firstChild.querySelectorAll('a')[0].href
-                                    
-                                    // Pass it back to the exposed function
-                                    firstHref(ref)
-                                }).catch(async err => {
-                                    console.log("====SELECTOR NOT FOUND. DIDN'T LOAD YET?====")
-                                })
-                        })
-                        
-                        // If not found, keep scrolling till you find it
-                        let scroll = async () => {
-                            
-                            await page.evaluate(()=>{
-                                window.scrollTo(0,document.body.scrollHeight)
-                            })
-    
-                            await page.$(`a[href="${video}"]`)
-                            .then( async(resolve)=>{
-                                    if (resolve){
-                                        waitTiktok = false
-                                        res()
-                                    }
-                                    else
-                                        await scroll()
-                            })
-                        
-                        }
-                        await scroll().catch(()=>{}) // Execution context will be destroyed if page navigates
-                                                     // so the error is expected
-                        })
-                    }
-                    
-                    // Start the search and scroll code
-                    await search().then( async()=>{
-    
-                        waitTiktok = false
-                        await page.hover(`a[href="${video}"]`)
-    
-                    })
-    
                 }
             }
     
@@ -264,7 +224,7 @@ module.exports = (client) => {
                 }, 2000);
             }
         }
-            
+    
     })
 
     //util functions
