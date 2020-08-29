@@ -13,7 +13,7 @@ module.exports = {
     REQUEST_FULL: "Queue full, please wait",
 
     //Errors
-    NAV_ERROR: "Network error",
+    NAV_ERROR: "Navigation error",
     COMPRESSION_LARGE: "File too large",
 
 }
