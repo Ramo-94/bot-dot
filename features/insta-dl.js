@@ -152,20 +152,18 @@ module.exports = (client) => {
                         timeout: 0,
                         waitUntil: 'networkidle2'
                     }).catch(async()=>{
-                        msg.reply(MSGS.NAV_ERROR)
+
+                        let notice = await msg.channel.send(MSGS.NAV_ERROR)
+                        setTimeout(async () => {
+                            await notice.delete()
+                        }, 2000)
+
                         await browser.close()
                         queue.dequeue()
                     })
     
                     // Click video to load media request
-                    await page.click('div[class="fXIG0"]').catch(async ()=>{
-
-                        let notice = await msg.channel.send(MSGS.NAV_ERROR)
-                        setTimeout(async () => {
-                            await notice.delete()
-                        }, 2000);
-
-                    })
+                    await page.click('div[class="fXIG0"]').catch(async ()=>{console.log("=== BUTTON NOT FOUND ===")})
                 }
     
                 // Is the requested video from Tiktok ?
@@ -189,7 +187,12 @@ module.exports = (client) => {
                         
                         await page.goto(cmd.args[0], {timeout:0, waitUntil: 'networkidle2'})
                             .catch(async()=>{
-                                msg.reply(MSGS.NAV_ERROR)
+
+                                let notice = await msg.channel.send(MSGS.NAV_ERROR)
+                                setTimeout(async () => {
+                                    await notice.delete()
+                                }, 2000);
+                                
                                 await browser.close()
                                 queue.dequeue()
                             })
