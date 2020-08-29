@@ -15,5 +15,6 @@ module.exports = {
     //Errors
     NAV_ERROR: "Navigation error",
     COMPRESSION_LARGE: "File too large",
+    BAD_LINK: "Invalid link, please check it again"
 
 }
