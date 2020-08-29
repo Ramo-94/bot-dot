@@ -213,6 +213,13 @@ module.exports = (client) => {
                         waitUntil: 'networkidle2'
                     })
                 }
+
+                else {
+                    let badLink = await msg.channel.send(MSGS.BAD_LINK)
+                    setTimeout(async () => {
+                        await badLink.delete()
+                    }, 2000);
+                }
             }
     
             // Error when the download queue is full
