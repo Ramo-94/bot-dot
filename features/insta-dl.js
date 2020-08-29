@@ -196,7 +196,6 @@ module.exports = (client) => {
                         
                         await page.waitForNavigation({timeout:0, waitUntil: 'networkidle2'})
                             .catch(async()=>{
-                                msg.reply(MSGS.NAV_ERROR)
                                 await browser.close()
                                 queue.dequeue()
                             })
@@ -211,7 +210,7 @@ module.exports = (client) => {
                     await page.goto(video,{
                         timeout:0,
                         waitUntil: 'networkidle2'
-                    })
+                    }).catch(()=>{}) // Execution context will be destroyed, error is expected.
                 }
 
                 else {
