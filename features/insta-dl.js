@@ -84,9 +84,9 @@ module.exports = (client) => {
                         page.removeListener('request', reqListen)
     
                         if (url) {
-    
+
                             status.next()
-            
+    
                             //Get mp4 buffer using bent
                             let buf = await getBuffer(url)
     
@@ -110,6 +110,8 @@ module.exports = (client) => {
                                 })
                             }
     
+                            status.next()
+
                             //Upload the file to discord
                             await msg.channel.send({
                                 files: ['./video.mp4'],
@@ -119,8 +121,6 @@ module.exports = (client) => {
                                 await authorDM.send(MSGS.COMPRESSION_LARGE)
                                 queue.dequeue()
                             })
-    
-                            status.next()
     
                             //Delete local video copy to save space
                             if (fs.existsSync("./video.mp4")) 
@@ -241,9 +241,7 @@ module.exports = (client) => {
     async function * updateStatus(msg) {
         let message = await msg.channel.send(MSGS.REQUEST_ENQUEUED)
         yield await message.edit(MSGS.REQUEST_SEARCHING)
-        yield await (async () => { 
-            message.edit(MSGS.REQUEST_FOUND)
-        })
+        yield await message.edit(MSGS.REQUEST_FOUND)
         yield await message.delete()
     }
 
