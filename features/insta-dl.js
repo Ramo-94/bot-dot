@@ -16,27 +16,31 @@ const { execSync } = require('child_process')
 module.exports = (client) => {
 
     let queue = new enqueuer(client, "message", 3)
+    puppeteer.use(StealthPlugin())
+    let glblmsg
 
     client.on('message', async (msg) => {
         
+        glblmsg = msg
         let cmd = interpret(msg.content, true)
- 
-        puppeteer.use(StealthPlugin())
+        // Browser and page launch options
+        let brwsrOptns = {headless: true, args:[ '--no-sandbox','--disable-setuid-sandbox' ]}
+        let pageVwprt = {width: 1920, height: 1080}
+        // Options object for page nav timeouts
+        let pageWait = {timeout: 0, waitUntil: 'networkidle2'}
+
 
         // Download command
-
         if (cmd && cmd.base === "dl" && !msg.author.bot) {
 
             if (!queue.isFull()) {
 
                 queue.enqueue(msg)
 
-                // Setup status updates
+                // Setup download status updates
                 const status = updateStatus(msg)
                 status.next()
                 
-                let authorDM = await msg.author.createDM()
-
                 // Embed for download information
                 let downloadEmbed = new Discord.MessageEmbed()
                 .setTitle(MSGS.DOWNLOAD_LINK)
@@ -44,33 +48,19 @@ module.exports = (client) => {
                 .setURL(cmd.args[0])
                 .setColor(getUser(msg,client).displayColor)
 
-
                 // Whether to start listening for media requests from tiktok
                 let waitTiktok = false
 
-
-                // Browser and page setup
-                const browser = await puppeteer.launch({
-                    headless: true,
-                    args:[
-                        '--no-sandbox',
-                        '--disable-setuid-sandbox'
-                        ]
-                })
-                const page = await browser.newPage()
-                await page.setViewport({
-                    width:  1920,
-                    height: 1080
-                })
+                let browser = await puppeteer.launch(brwsrOptns)
+                let page = await browser.newPage()
+                await page.setViewport(pageVwprt)
 
                 // Shows mouse clearly on headful debugging
                     // await installMouseHelper(page) //
 
-
                 // Initial command clean up and response from discord chat
                 status.next()
                 await msg.delete()
-
 
 
                 // Start listener for page media requests
@@ -89,75 +79,68 @@ module.exports = (client) => {
     
                             //Get mp4 buffer using bent
                             let buf = await getBuffer(url)
-    
-                            //Calculate file size to determine whether to write to file
-                            let size = (buf.byteLength / 1e+6).toFixed(2)
+                            let size = (buf.byteLength / 1e+6).toFixed(2) // size in MB
     
                             console.log("SIZE: "+ size)
 
-                            if (size < 25) 
+                            if (size < 25){
                                 fs.writeFileSync("./video.mp4", buf)
 
-                            //Determine if compression is necessary
-                            let compressionMessage
-                            if (size > 8) {
-                                compressionMessage = await msg.channel.send(MSGS.NEEDS_COMPRESSION)
-    
-                                fs.copyFileSync("./video.mp4","./copyEdit.mp4")
-                                execSync(`ffmpeg -i ./copyEdit.mp4 -vcodec libx264 -crf 32 -y ./video.mp4`, err => {
-                                    if (err) 
-                                        console.log(`err: ${err}`)
-                                })
-                            }
-    
-                            status.next()
+                                //Determine if compression is necessary
+                                if (size > 8) {
+                                    headsup(MSGS.NEEDS_COMPRESSION, 2000)
+        
+                                    fs.copyFileSync("./video.mp4","./copyEdit.mp4")
+                                    execSync(`ffmpeg -i ./copyEdit.mp4 -vcodec libx264 -crf 32 -y ./video.mp4`, async err => {
+                                        if (err) {
+                                            console.log(`err: ${err}`)
+                                            headsup(MSGS.COMPRESSION_ERROR, 2000)
+                                            await browser.close()
+                                            queue.dequeue()
+                                        }
+                                    })
+                                }
 
-                            //Upload the file to discord
-                            await msg.channel.send({
-                                files: ['./video.mp4'],
-                                embed: downloadEmbed
-                            }).catch(async ()=>{
-                                console.log("File too large")
-                                await authorDM.send(MSGS.COMPRESSION_LARGE)
+                                status.next()
+
+                                // Recalculate size after compression
+                                size = (fs.statSync("./video.mp4")["size"] / 1e+6).toFixed(2)
+                                if (size > 8) {
+                                    headsup(MSGS.COMPRESSION_LARGE, 2000)
+                                    await browser.close()
+                                }
+                                else {
+
+                                    await msg.channel.send({
+                                        files: ['./video.mp4'],
+                                        embed: downloadEmbed
+                                    })
+    
+                                    if (fs.existsSync("./video.mp4")) 
+                                        fs.unlinkSync("./video.mp4")
+                                }
+
                                 queue.dequeue()
-                            })
-    
-                            //Delete local video copy to save space
-                            if (fs.existsSync("./video.mp4")) 
-                                fs.unlinkSync("./video.mp4")
-    
-                            if (size > 8)
-                                await compressionMessage.delete()
-                            await browser.close()
-                            queue.dequeue()
+                            }      
+                            else {
+                                headsup(MSGS.COMPRESSION_LARGE, 2000)
+                                await browser.close()
+                                queue.dequeue()
+                            }
                         }
                     }
                 })
 
-                // URL Regexp validation
-                let tiktokTestOne = RegExp(/^((https:\/\/)|(www.)|(https:\/\/www.))|tiktok.com(\/\@[\w\d]+)(\/video)(\/[\w\d]+)\?*[\w\d]*/,"g")
-                
-                // Vm link
-                let tiktokTestTwo = RegExp(/^(https:\/\/)?vm.tiktok.com\/([\w\d]+)\??[\w\d]*/,"g")
-                
-                // Testing for "for you"
-                let tiktokTestThree = RegExp(/^((https:\/\/)|(www.)|(https:\/\/www.))|tiktok.com(\/foryou(\?[\w\d]*\=[\w\d]*)?\#?)*(\/\@[\w\d]+)(\/video)(\/[\w\d]+)\?*[\w\d]*/,"g")
 
                 // Is the requested video from Instagram ?
-                if (cmd.args[0].indexOf('instagram') !== -1) {
+                if (regTests('iNormal').test(cmd.args[0])) {
     
                     // Navigate to the download page
                     // and wait till everything is loaded
-                    await page.goto(cmd.args[0],{
-                        timeout: 0,
-                        waitUntil: 'networkidle2'
-                    }).catch(async()=>{
+                    await page.goto(cmd.args[0],{pageWait})
+                    .catch(async()=>{
 
-                        let notice = await msg.channel.send(MSGS.NAV_ERROR)
-                        setTimeout(async () => {
-                            await notice.delete()
-                        }, 2000)
-
+                        headsup(MSGS.NAV_ERROR, 2000)
                         await browser.close()
                         queue.dequeue()
                     })
@@ -167,37 +150,32 @@ module.exports = (client) => {
                 }
     
                 // Is the requested video from Tiktok ?
-                else if (tiktokTestOne.test(cmd.args[0]) || tiktokTestTwo.test(cmd.args[0]) || tiktokTestThree.test(cmd.args[0])) {
+                else if (regTests("tNormal").test(cmd.args[0]) || regTests("tVm").test(cmd.args[0]) || regTests("tForyou").test(cmd.args[0])) {
                     
                     // Prevent request listener from listening
                     // to media requests for now
                     waitTiktok = true
 
-                    // Whether the video is from the "for you" page
-                    let foryou = tiktokTestThree.test(cmd.args[0])
+                    // Whether the video is from the "for you" page or has "vm" in link
+                    let foryou = regTests("tForyou").test(cmd.args[0])
+                    let vm = regTests("tVm").test(cmd.args[0])
                     let video = cmd.args[0]
     
                     if (foryou) 
                         video = "https://www.tiktok.com/".concat(cmd.args[0].substring(cmd.args[0].indexOf("@")))
                     
-                    if (tiktokTestTwo.test(cmd.args[0])){
-
-                        //Navigate to get normal full URL
+                    if (vm) {
                         waitTiktok = false
                         
-                        await page.goto(cmd.args[0], {timeout:0, waitUntil: 'networkidle2'})
+                        //Navigate to get normal full URL
+                        await page.goto(cmd.args[0], {pageWait})
                             .catch(async()=>{
-
-                                let notice = await msg.channel.send(MSGS.NAV_ERROR)
-                                setTimeout(async () => {
-                                    await notice.delete()
-                                }, 2000);
-                                
+                                headsup(MSGS.NAV_ERROR, 2000)  
                                 await browser.close()
                                 queue.dequeue()
                             })
                         
-                        await page.waitForNavigation({timeout:0, waitUntil: 'networkidle2'})
+                        await page.waitForNavigation({pageWait})
                             .catch(async()=>{
                                 await browser.close()
                                 queue.dequeue()
@@ -210,21 +188,15 @@ module.exports = (client) => {
                     console.log(cmd.args[0])
 
                     waitTiktok = false
-                    await page.goto(video,{
-                        timeout:0,
-                        waitUntil: 'networkidle2'
-                    }).catch(()=>{}) // Execution context will be destroyed, error is expected.
+                    await page.goto(video,{pageWait})
+                    .catch(()=>{}) // Execution context will be destroyed, error is expected.
                 }
 
-                else {
-                    let badLink = await msg.channel.send(MSGS.BAD_LINK)
-                    setTimeout(async () => {
-                        await badLink.delete()
-                    }, 2000);
-                }
+                else 
+                    headsup(MSGS.BAD_LINK, 2000)
             }
     
-            // Error when the download queue is full
+            // Notice when the download queue is full
             else {
                 queue.enqueue(msg)
                 let full = await msg.channel.send(MSGS.REQUEST_FULL)
@@ -236,13 +208,41 @@ module.exports = (client) => {
     
     })
 
-    //util functions
+    // util/alias functions
 
     async function * updateStatus(msg) {
         let message = await msg.channel.send(MSGS.REQUEST_ENQUEUED)
         yield await message.edit(MSGS.REQUEST_SEARCHING)
         yield await message.edit(MSGS.REQUEST_FOUND)
         yield await message.delete()
+    }
+
+    async function headsup(message, time) {
+        let notice = await glblmsg.channel.send(message)
+        setTimeout(async () => { await notice.delete() }, time);
+    }
+
+    // URL Regexp validation
+    function regTests(test) {
+        switch (test) {
+            // t for tiktok & i for instagram
+
+            case "tNormal":
+                return /^((https:\/\/)|(www.)|(https:\/\/www.))|tiktok.com(\/\@[\w\d]+)(\/video)(\/[\w\d]+)\?*[\w\d]*/g
+            
+            case "tVm":
+                return /^(https:\/\/)?vm.tiktok.com\/([\w\d]+)\??[\w\d]*/g
+
+            case "tForyou":
+                return /^((https:\/\/)|(www.)|(https:\/\/www.))|tiktok.com(\/foryou(\?[\w\d]*\=[\w\d]*)?\#?)*(\/\@[\w\d]+)(\/video)(\/[\w\d]+)\?*[\w\d]*/g
+
+
+            case "iNormal":
+                return /^((https:\/\/www.)|(www.)|(https:\/\/)|^)instagram.com\/(p|tv)\/([\w\d]+)(\/|)[\w\d=?]*/g
+
+            default:
+                break;
+        }
     }
 
 }
