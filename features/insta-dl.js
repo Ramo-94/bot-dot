@@ -1,16 +1,17 @@
-const MSGS = require('../messages')
+const MSGS      = require('../messages')
 const interpret = require('../util/interpretCommand')
-const enqueuer = require('../util/TaskEnqueuer')
+const enqueuer  = require('../util/TaskEnqueuer')
+const tempMsg   = require('../util/tempMsg')
 
 const {installMouseHelper} = require('../util/installMouseHelper')
-const fs = require('fs')
-const bent = require('bent')
-const getBuffer = bent('buffer')
-const puppeteer = require('puppeteer-extra')
-const StealthPlugin = require('puppeteer-extra-plugin-stealth')
-const getUser = require('../util/getUser')
-const Discord = require('discord.js')
-const { execSync } = require('child_process')
+const fs                   = require('fs')
+const bent                 = require('bent')
+const getBuffer            = bent('buffer')
+const puppeteer            = require('puppeteer-extra')
+const StealthPlugin        = require('puppeteer-extra-plugin-stealth')
+const getUser              = require('../util/getUser')
+const Discord              = require('discord.js')
+const { execSync }         = require('child_process')
 
 
 module.exports = (client) => {
@@ -53,7 +54,7 @@ module.exports = (client) => {
 
                 let browser = await puppeteer.launch(brwsrOptns)
                 let page = await browser.newPage()
-                await page.setViewport(pageVwprt)
+                await page.setViewport(pageVwprt)                  
 
                 // Shows mouse clearly on headful debugging
                     // await installMouseHelper(page) //
@@ -88,13 +89,13 @@ module.exports = (client) => {
 
                                 //Determine if compression is necessary
                                 if (size > 8) {
-                                    headsup(MSGS.NEEDS_COMPRESSION, 2000)
+                                    headsup(MSGS.NEEDS_COMPRESSION, 2000, glblmsg)
         
                                     fs.copyFileSync("./video.mp4","./copyEdit.mp4")
                                     execSync(`ffmpeg -i ./copyEdit.mp4 -vcodec libx264 -crf 32 -y ./video.mp4`, async err => {
                                         if (err) {
                                             console.log(`err: ${err}`)
-                                            headsup(MSGS.COMPRESSION_ERROR, 2000)
+                                            headsup(MSGS.COMPRESSION_ERROR, 2000, glblmsg)
                                             await browser.close()
                                             queue.dequeue()
                                         }
@@ -106,7 +107,7 @@ module.exports = (client) => {
                                 // Recalculate size after compression
                                 size = (fs.statSync("./video.mp4")["size"] / 1e+6).toFixed(2)
                                 if (size > 8) {
-                                    headsup(MSGS.COMPRESSION_LARGE, 2000)
+                                    headsup(MSGS.COMPRESSION_LARGE, 2000, glblmsg)
                                     await browser.close()
                                 }
                                 else {
@@ -121,9 +122,10 @@ module.exports = (client) => {
                                 }
 
                                 queue.dequeue()
+                                await browser.close()
                             }      
                             else {
-                                headsup(MSGS.COMPRESSION_LARGE, 2000)
+                                headsup(MSGS.COMPRESSION_LARGE, 2000, glblmsg)
                                 await browser.close()
                                 queue.dequeue()
                             }
@@ -140,7 +142,7 @@ module.exports = (client) => {
                     await page.goto(cmd.args[0],{pageWait})
                     .catch(async()=>{
 
-                        headsup(MSGS.NAV_ERROR, 2000)
+                        headsup(MSGS.NAV_ERROR, 2000, glblmsg)
                         await browser.close()
                         queue.dequeue()
                     })
@@ -170,7 +172,7 @@ module.exports = (client) => {
                         //Navigate to get normal full URL
                         await page.goto(cmd.args[0], {pageWait})
                             .catch(async()=>{
-                                headsup(MSGS.NAV_ERROR, 2000)  
+                                headsup(MSGS.NAV_ERROR, 2000, glblmsg)  
                                 await browser.close()
                                 queue.dequeue()
                             })
@@ -193,7 +195,7 @@ module.exports = (client) => {
                 }
 
                 else 
-                    headsup(MSGS.BAD_LINK, 2000)
+                    headsup(MSGS.BAD_LINK, 2000, glblmsg)
             }
     
             // Notice when the download queue is full
@@ -215,11 +217,6 @@ module.exports = (client) => {
         yield await message.edit(MSGS.REQUEST_SEARCHING)
         yield await message.edit(MSGS.REQUEST_FOUND)
         yield await message.delete()
-    }
-
-    async function headsup(message, time) {
-        let notice = await glblmsg.channel.send(message)
-        setTimeout(async () => { await notice.delete() }, time);
     }
 
     // URL Regexp validation

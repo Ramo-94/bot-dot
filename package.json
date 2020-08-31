@@ -1,6 +1,6 @@
 {
   "name": "bot-dot",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Dot discord bot",
   "main": "app.js",
   "dependencies": {
@@ -20,7 +20,7 @@
     "url": "git+https://github.com/Ramo-94/bot-dot.git"
   },
   "engines": {
-    "node": "12.x"
+    "node": "14.x"
   },
   "author": "Ramo-94",
   "license": "Apache-2.0",

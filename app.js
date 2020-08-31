@@ -3,9 +3,8 @@ const client = new Discord.Client()
 const { TOKEN } = require('./variables')
 
 const features = [
-                    require('./features/blockBotCommand')   , require('./features/addToBlock'),
-                    require('./features/insta-dl')          , require('./features/antiRaid')  ,
-                    require('./features/unblockBotCommand')       
+                    require('./features/blockBotCommand'), require('./features/antiRaid'),
+                    require('./features/insta-dl')     
                  ]
 
 client.once('ready', () => {
