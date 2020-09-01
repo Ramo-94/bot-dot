@@ -4,7 +4,8 @@ const { TOKEN } = require('./variables')
 
 const features = [
                     require('./features/blockBotCommand'), require('./features/antiRaid'),
-                    require('./features/insta-dl')     
+                    require('./features/insta-dl')       , require('./features/help')    ,
+                    require('./features/ping')
                  ]
 
 client.once('ready', () => {

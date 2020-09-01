@@ -1,4 +1,4 @@
-const isPriviledged = require('../util/isPriviledged')
+const isPrivileged = require('../util/isPrivileged')
 const interp = require('../util/interpretCommand')
 
 const fs = require('fs')
@@ -34,7 +34,7 @@ module.exports = (client) => {
         }
 
         //Check words currently in block list
-        if (cmd && cmd.base === "show" && isPriviledged(msg)) {
+        if (cmd && cmd.base === "show" && isPrivileged(msg)) {
             reload()
             await msg.channel.send("Blocked bot commands:")
 
@@ -46,8 +46,8 @@ module.exports = (client) => {
         }
 
         // Bot command response to block
-        if (cmd && cmd.base === "block" && isPriviledged(msg)) {
-            if (isPriviledged(msg)) {
+        if (cmd && cmd.base === "block" && isPrivileged(msg)) {
+            if (isPrivileged(msg)) {
 
                 if (typeof cmd.args[1] === 'undefined' ) {
                     await msg.reply("Expected two arguments")
@@ -76,8 +76,8 @@ module.exports = (client) => {
         }
 
         // Bot command index to unblock
-        if (cmd && cmd.base === "unblock" && isPriviledged(msg)) {
-            if (isPriviledged(msg)) {
+        if (cmd && cmd.base === "unblock" && isPrivileged(msg)) {
+            if (isPrivileged(msg)) {
 
                 let content = Number(cmd.args[0])
                 reload()
