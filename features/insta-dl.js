@@ -36,6 +36,9 @@ module.exports = (client) => {
     puppeteer.use(StealthPlugin())
     let glblmsg
 
+    // Setup download status updates
+    let status
+
     client.on('message', async (msg) => {
         
         glblmsg = msg
@@ -54,8 +57,7 @@ module.exports = (client) => {
 
                 queue.enqueue(msg)
 
-                // Setup download status updates
-                const status = updateStatus(msg)
+                status = updateStatus(msg)
                 status.next()
                 
                 // Embed for download information
@@ -214,6 +216,7 @@ module.exports = (client) => {
                     tempMsg(MSGS.BAD_LINK, 2000, glblmsg)
                     await browser.close()
                     queue.dequeue()
+                    status.next()
                 } 
             }
     
