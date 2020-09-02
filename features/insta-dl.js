@@ -210,8 +210,11 @@ module.exports = (client) => {
                     .catch(()=>{}) // Execution context will be destroyed, error is expected.
                 }
 
-                else 
+                else {
                     tempMsg(MSGS.BAD_LINK, 2000, glblmsg)
+                    await browser.close()
+                    queue.dequeue()
+                } 
             }
     
             // Notice when the download queue is full
