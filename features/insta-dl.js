@@ -105,13 +105,13 @@ module.exports = (client) => {
 
                                 //Determine if compression is necessary
                                 if (size > 8) {
-                                    headsup(MSGS.NEEDS_COMPRESSION, 2000, glblmsg)
+                                    tempMsg(MSGS.NEEDS_COMPRESSION, 2000, glblmsg)
         
                                     fs.copyFileSync("./video.mp4","./copyEdit.mp4")
                                     execSync(`ffmpeg -i ./copyEdit.mp4 -vcodec libx264 -crf 32 -y ./video.mp4`, async err => {
                                         if (err) {
                                             console.log(`err: ${err}`)
-                                            headsup(MSGS.COMPRESSION_ERROR, 2000, glblmsg)
+                                            tempMsg(MSGS.COMPRESSION_ERROR, 2000, glblmsg)
                                             await browser.close()
                                             queue.dequeue()
                                         }
@@ -123,7 +123,7 @@ module.exports = (client) => {
                                 // Recalculate size after compression
                                 size = (fs.statSync("./video.mp4")["size"] / 1e+6).toFixed(2)
                                 if (size > 8) {
-                                    headsup(MSGS.COMPRESSION_LARGE, 2000, glblmsg)
+                                    tempMsg(MSGS.COMPRESSION_LARGE, 2000, glblmsg)
                                     await browser.close()
                                 }
                                 else {
@@ -141,7 +141,7 @@ module.exports = (client) => {
                                 await browser.close()
                             }      
                             else {
-                                headsup(MSGS.COMPRESSION_LARGE, 2000, glblmsg)
+                                tempMsg(MSGS.COMPRESSION_LARGE, 2000, glblmsg)
                                 await browser.close()
                                 queue.dequeue()
                             }
@@ -158,7 +158,7 @@ module.exports = (client) => {
                     await page.goto(cmd.args[0],{pageWait})
                     .catch(async()=>{
 
-                        headsup(MSGS.NAV_ERROR, 2000, glblmsg)
+                        tempMsg(MSGS.NAV_ERROR, 2000, glblmsg)
                         await browser.close()
                         queue.dequeue()
                     })
@@ -188,7 +188,7 @@ module.exports = (client) => {
                         //Navigate to get normal full URL
                         await page.goto(cmd.args[0], {pageWait})
                             .catch(async()=>{
-                                headsup(MSGS.NAV_ERROR, 2000, glblmsg)  
+                                tempMsg(MSGS.NAV_ERROR, 2000, glblmsg)  
                                 await browser.close()
                                 queue.dequeue()
                             })
@@ -211,7 +211,7 @@ module.exports = (client) => {
                 }
 
                 else 
-                    headsup(MSGS.BAD_LINK, 2000, glblmsg)
+                    tempMsg(MSGS.BAD_LINK, 2000, glblmsg)
             }
     
             // Notice when the download queue is full
