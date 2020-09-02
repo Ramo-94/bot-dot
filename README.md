@@ -7,6 +7,8 @@ A simple discord downloader bot built using DiscordJs. Downloads from Instagram 
 
 Apart from the npm dependencies listed, the bot uses ffmpeg for video compression. Make sure it's installed on your system in order for the bot to work properly.
 
+$ npm install
+
 ## Features
 
  - Downloader
