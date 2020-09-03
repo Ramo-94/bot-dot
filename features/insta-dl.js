@@ -44,7 +44,7 @@ module.exports = (client) => {
         glblmsg = msg
         let cmd = interpret(msg.content, true)
         // Browser and page launch options
-        let brwsrOptns = {headless: true, args:[ '--no-sandbox','--disable-setuid-sandbox' ]}
+        let brwsrOptns = {headless: false, args:[ '--no-sandbox','--disable-setuid-sandbox' ]}
         let pageVwprt = {width: 1920, height: 1080}
         // Options object for page nav timeouts
         let pageWait = {timeout: 0, waitUntil: 'networkidle2'}
@@ -168,6 +168,8 @@ module.exports = (client) => {
                     // Click video to load media request
                     await page.click('div[class="fXIG0"]').catch(async ()=>{
                         console.log("=== BUTTON NOT FOUND ===")
+                        await browser.close()
+                        queue.dequeue()
                     })
                 }
     
