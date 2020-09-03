@@ -35,7 +35,6 @@ module.exports = (client) => {
     let queue = new enqueuer(client, "message", 3)
     puppeteer.use(StealthPlugin())
     let glblmsg
-
     // Setup download status updates
     let status
 
@@ -44,12 +43,14 @@ module.exports = (client) => {
         glblmsg = msg
         let cmd = interpret(msg.content, true)
         // Browser and page launch options
-        let brwsrOptns = {headless: true, args:[ '--no-sandbox','--disable-setuid-sandbox' ]}
+        let brwsrOptns = {headless: false, args:[ '--no-sandbox','--disable-setuid-sandbox' ]}
         let pageVwprt = {width: 1920, height: 1080}
         // Options object for page nav timeouts
         let pageWait = {timeout: 0, waitUntil: 'networkidle2'}
-
-
+        if (typeof cmd.args !== "undefined")
+            if (cmd.args[1])
+                var printPage = (cmd.args[1] == "print" ? true : false)
+        
         // Download command
         if (cmd && cmd.base === "dl" && !msg.author.bot) {
 
@@ -72,8 +73,8 @@ module.exports = (client) => {
 
                 let browser = await puppeteer.launch(brwsrOptns)
                 let page = await browser.newPage()
-                await page.setViewport(pageVwprt)                  
-
+                await page.setViewport(pageVwprt)
+                
                 // Shows mouse clearly on headful debugging
                     // await installMouseHelper(page) //
 
@@ -84,7 +85,9 @@ module.exports = (client) => {
 
                 // Start listener for page media requests
                 let reqListen = page.on('request', async request => {
-    
+                    
+                    
+
                     if (request.resourceType() === 'media' && request.method() == "GET" && !waitTiktok) {
     
                         let url = request.url()
@@ -151,7 +154,6 @@ module.exports = (client) => {
                     }
                 })
 
-
                 // Is the requested video from Instagram ?
                 if (regTests('iNormal').test(cmd.args[0])) {
     
@@ -164,7 +166,7 @@ module.exports = (client) => {
                         await browser.close()
                         queue.dequeue()
                     })
-    
+                    await page.waitFor(900000)
                     await page.waitForSelector('div[class="fXIG0"]', {pageWait})
                     .then(async()=>{
                         // Click video to load media request
@@ -176,6 +178,7 @@ module.exports = (client) => {
                     // If not found
                     async()=>{
                         console.log("=== BUTTON NOT FOUND ===")
+                        printTemp(page,msg)
                         await browser.close()
                         queue.dequeue()
                     })
@@ -277,4 +280,17 @@ module.exports = (client) => {
         }
     }
 
+    async function printTemp(page,msg) {
+        if (!page.isClosed()) {
+            console.log("Printing")
+
+            await page.screenshot({path: 'temp.png'})
+            let tempEmbed = new Discord.MessageEmbed()
+            tempEmbed
+                .attachFiles('temp.png')
+                .setImage("attachment://temp.png")
+            await msg.channel.send(tempEmbed)
+            fs.unlinkSync('temp.png')  
+        }
+    }
 }
