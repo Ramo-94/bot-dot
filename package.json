@@ -27,5 +27,7 @@
   "bugs": {
     "url": "https://github.com/Ramo-94/bot-dot/issues"
   },
-  "homepage": "https://github.com/Ramo-94/bot-dot#readme"
+  "homepage": "https://github.com/Ramo-94/bot-dot#readme",
+  
+  "publishConfig": { "registry": "https://npm.pkg.github.com/" }
 }

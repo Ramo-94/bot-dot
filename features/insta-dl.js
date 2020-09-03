@@ -166,7 +166,9 @@ module.exports = (client) => {
                     })
     
                     // Click video to load media request
-                    await page.click('div[class="fXIG0"]').catch(async ()=>{console.log("=== BUTTON NOT FOUND ===")})
+                    await page.click('div[class="fXIG0"]').catch(async ()=>{
+                        console.log("=== BUTTON NOT FOUND ===")
+                    })
                 }
     
                 // Is the requested video from Tiktok ?
@@ -257,7 +259,7 @@ module.exports = (client) => {
 
 
             case "iNormal":
-                return /^((https:\/\/www.)|(www.)|(https:\/\/)|^)instagram.com\/(p|tv)\/([\w\d]+)(\/|)[\w\d=?]*/g
+                return /^((https:\/\/www.)|(www.)|(https:\/\/)|^)instagram.com\/(p|tv)\/([\w\d]+)(\/|)[\w\d=?-]*/g
 
             default:
                 break;
