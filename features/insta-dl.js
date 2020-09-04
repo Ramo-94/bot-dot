@@ -171,6 +171,7 @@ module.exports = (client) => {
                         status.next()
                     })
 
+                    await printTemp(page,msg)
                     await page.evaluate(()=>{
                         document.getElementsByClassName("fXIG0")[0].click()
                     }).catch(async (err)=>{
