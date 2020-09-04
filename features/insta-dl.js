@@ -177,7 +177,7 @@ module.exports = (client) => {
 
                         await page.evaluate(()=>{
                             $('div[class="fXIG0"]').click()
-                        }).catch(()=>{
+                        }).catch(async ()=>{
                             await browser.close()
                             queue.dequeue()
                             status.next()
