@@ -174,9 +174,15 @@ module.exports = (client) => {
                     await page.click('div[class="fXIG0"]').catch(async (err)=>{
                         console.log("=== COULD NOT CLICK BUTTON ===")
                         console.log(err)
-                        await browser.close()
-                        queue.dequeue()
-                        status.next()
+
+                        await page.evaluate(()=>{
+                            $('div[class="fXIG0"]').click()
+                        }).catch(()=>{
+                            await browser.close()
+                            queue.dequeue()
+                            status.next()
+                        })
+
                     })
 
                 }
