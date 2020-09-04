@@ -171,20 +171,15 @@ module.exports = (client) => {
                         status.next()
                     })
 
-                    await page.click('div[class="fXIG0"]').catch(async (err)=>{
+                    await page.evaluate(()=>{
+                        document.getElementsByClassName("fXIG0")[0].click()
+                    }).catch(async (err)=>{
                         console.log("=== COULD NOT CLICK BUTTON ===")
                         console.log(err)
-
-                        await page.evaluate(()=>{
-                            $('div[class="fXIG0"]').click()
-                        }).catch(async ()=>{
-                            await browser.close()
-                            queue.dequeue()
-                            status.next()
-                        })
-
+                        await browser.close()
+                        queue.dequeue()
+                        status.next()
                     })
-
                 }
     
                 // Is the requested video from Tiktok ?
