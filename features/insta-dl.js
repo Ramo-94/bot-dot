@@ -37,7 +37,7 @@ module.exports = (client) => {
     let glblmsg
     // Setup download status updates
     let status
-
+    let printPage
     client.on('message', async (msg) => {
         
         glblmsg = msg
@@ -49,7 +49,7 @@ module.exports = (client) => {
         let pageWait = {timeout: 0, waitUntil: 'networkidle2'}
         if (typeof cmd.args !== "undefined")
             if (cmd.args[1])
-                var printPage = (cmd.args[1] == "print" ? true : false)
+                printPage = (cmd.args[1] == "print" ? true : false)
         
         // Download command
         if (cmd && cmd.base === "dl" && !msg.author.bot) {
@@ -279,7 +279,7 @@ module.exports = (client) => {
     }
 
     async function printTemp(page,msg) {
-        if (!page.isClosed()) {
+        if (!page.isClosed() && printPage) {
             console.log("Printing")
 
             await page.screenshot({path: 'temp.png'})
