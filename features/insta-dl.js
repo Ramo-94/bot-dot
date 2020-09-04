@@ -157,6 +157,9 @@ module.exports = (client) => {
                 // Is the requested video from Instagram ?
                 if (regTests('iNormal').test(cmd.args[0])) {
     
+                    // Log requested link
+                    console.log(cmd.args[0])
+
                     // Navigate to the download page
                     // and wait till everything is loaded
                     await page.goto(cmd.args[0],{pageWait})
@@ -165,11 +168,15 @@ module.exports = (client) => {
                         tempMsg(MSGS.NAV_ERROR, 2000, glblmsg)
                         await browser.close()
                         queue.dequeue()
+                        status.next()
                     })
 
-                    await page.click('div[class="fXIG0"]').catch(async ()=>{
+                    await page.click('div[class="fXIG0"]').catch(async (err)=>{
+                        console.log("=== COULD NOT CLICK BUTTON ===")
+                        console.log(err)
                         await browser.close()
                         queue.dequeue()
+                        status.next()
                     })
 
                 }
