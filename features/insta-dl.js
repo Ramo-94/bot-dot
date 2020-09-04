@@ -162,9 +162,17 @@ module.exports = (client) => {
 
                     // Navigate to the download page
                     // and wait till everything is loaded
-                    await page.goto(cmd.args[0],{pageWait})
+                    await page.goto(cmd.args[0])
                     .catch(async()=>{
 
+                        tempMsg(MSGS.NAV_ERROR, 2000, glblmsg)
+                        await browser.close()
+                        queue.dequeue()
+                        status.next()
+                    })
+
+                    await page.waitForNavigation({pageWait})
+                    .catch(async()=>{
                         tempMsg(MSGS.NAV_ERROR, 2000, glblmsg)
                         await browser.close()
                         queue.dequeue()
