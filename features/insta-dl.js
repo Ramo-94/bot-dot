@@ -289,13 +289,15 @@ module.exports = (client) => {
         if (!page.isClosed() && printPage) {
             console.log("Printing")
 
+            let url = await page.url()
+            await msg.channel.send(url)
             await page.screenshot({path: 'temp.png'})
             let tempEmbed = new Discord.MessageEmbed()
             tempEmbed
                 .attachFiles('temp.png')
                 .setImage("attachment://temp.png")
             await msg.channel.send(tempEmbed)
-            fs.unlinkSync('temp.png')  
+            fs.unlinkSync('temp.png')
         }
     }
 }
