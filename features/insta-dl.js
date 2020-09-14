@@ -43,7 +43,7 @@ module.exports = (client) => {
         glblmsg = msg
         let cmd = interpret(msg.content, true)
         // Browser and page launch options
-        let brwsrOptns = {headless: true, args:[ '--disable-setuid-sandbox' ]}
+        let brwsrOptns = {headless: true, args:[ '--no-sandbox' ]}
         let pageVwprt = {width: 1920, height: 1080}
         // Options object for page nav timeouts
         let pageWait = {timeout: 0, waitUntil: 'networkidle2'}
