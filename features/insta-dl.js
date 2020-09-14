@@ -43,7 +43,7 @@ module.exports = (client) => {
         glblmsg = msg
         let cmd = interpret(msg.content, true)
         // Browser and page launch options
-        let brwsrOptns = {headless: true, args:[ '--no-sandbox','--disable-setuid-sandbox' ]}
+        let brwsrOptns = {headless: false, args:[ '--no-sandbox','--disable-setuid-sandbox' ]}
         let pageVwprt = {width: 1920, height: 1080}
         // Options object for page nav timeouts
         let pageWait = {timeout: 0, waitUntil: 'networkidle2'}
@@ -169,17 +169,15 @@ module.exports = (client) => {
                         await browser.close()
                         queue.dequeue()
                         status.next()
-                    })
-
-                    await page.waitForNavigation({pageWait})
-                    .catch(async()=>{
-                        tempMsg(MSGS.NAV_ERROR, 2000, glblmsg)
-                        await browser.close()
-                        queue.dequeue()
                         status.next()
                     })
 
                     await printTemp(page,msg)
+                    await page.mouse.move(500,1000).catch(err=>{
+                        console.log("MOUSE ERROR")
+                        console.log(err)
+                    })
+                    
                     await page.evaluate(()=>{
                         document.getElementsByClassName("fXIG0")[0].click()
                     }).catch(async (err)=>{
@@ -234,6 +232,7 @@ module.exports = (client) => {
                     .catch(()=>{}) // Execution context will be destroyed, error is expected.
                 }
 
+                // If the requested video is from neither
                 else {
                     tempMsg(MSGS.BAD_LINK, 2000, glblmsg)
                     await browser.close()
