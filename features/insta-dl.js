@@ -44,7 +44,6 @@ module.exports = (client) => {
         let cmd = interpret(msg.content, true)
         // Browser and page launch options
         let brwsrOptns = {headless: true, args:[ '--no-sandbox' ]}
-        let pageVwprt = {width: 1920, height: 1080}
         // Options object for page nav timeouts
         let pageWait = {timeout: 0, waitUntil: 'networkidle2'}
         if (typeof cmd.args !== "undefined")
@@ -71,12 +70,13 @@ module.exports = (client) => {
                 // Whether to start listening for media requests from tiktok
                 let waitTiktok = false
 
-                let browser = await puppeteer.launch(brwsrOptns)
-                let page = await browser.newPage()
-                await page.setViewport(pageVwprt)
+                let browser = await puppeteer.launch(brwsrOptns),
+                page = await browser.newPage(),
+                vp = randSize()
+                await page.setViewport({width:vp.x, height:vp.y})
                 
                 // Shows mouse clearly on headful debugging
-                    // await installMouseHelper(page) //
+                    await installMouseHelper(page) //
 
                 // Initial command clean up and response from discord chat
                 status.next()
@@ -156,6 +156,8 @@ module.exports = (client) => {
                 // Is the requested video from Instagram ?
                 if (regTests('iNormal').test(cmd.args[0])) {
     
+                    page.setUserAgent(agent())
+
                     // Log requested link
                     console.log(cmd.args[0])
 
@@ -299,6 +301,22 @@ module.exports = (client) => {
             fs.unlinkSync('temp.png')
         }
     }
-
     
+    function randSize() {
+        let x = [1366,1440,1536,1600,1280,1280],
+        y = [768,900,864,900,800,720]
+        return {
+            x: x[Math.floor(Math.random()*x.length)],
+            y: y[Math.floor(Math.random()*y.length)]
+        }
+    }
+
+    function agent() {
+        let agents = [
+            'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+            'Googlebot-Image/1.0',
+            'Mozilla/5.0 (compatible; DuckDuckGo-Favicons-Bot/1.0; +http://duckduckgo.com)'
+        ]
+        return agents[Math.floor(Math.random()*agents.length)]
+    }
 }
