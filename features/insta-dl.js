@@ -14,10 +14,11 @@
 // limitations under the License.
 // =================================================================
 
-const MSGS      = require('../messages')
-const interpret = require('../util/interpretCommand')
-const enqueuer  = require('../util/TaskEnqueuer')
-const tempMsg   = require('../util/tempMsg')
+const MSGS           = require('../messages')
+const { USER, PASS } = require("../variables")
+const interpret      = require('../util/interpretCommand')
+const enqueuer       = require('../util/TaskEnqueuer')
+const tempMsg        = require('../util/tempMsg')
 
 const {installMouseHelper} = require('../util/installMouseHelper')
 const fs                   = require('fs')
@@ -71,9 +72,7 @@ module.exports = (client) => {
                 let waitTiktok = false
 
                 let browser = await puppeteer.launch(brwsrOptns),
-                page = await browser.newPage(),
-                vp = randSize()
-                await page.setViewport({width:vp.x, height:vp.y})
+                page = await browser.newPage()
                 
                 // Shows mouse clearly on headful debugging
                     await installMouseHelper(page) //
@@ -155,15 +154,13 @@ module.exports = (client) => {
 
                 // Is the requested video from Instagram ?
                 if (regTests('iNormal').test(cmd.args[0])) {
-    
-                    page.setUserAgent(agent())
 
                     // Log requested link
                     console.log(cmd.args[0])
 
                     // Navigate to the download page
                     // and wait till everything is loaded
-                    await page.goto(cmd.args[0])
+                    await page.goto(cmd.args[0],)
                     .catch(async()=>{
 
                         tempMsg(MSGS.NAV_ERROR, 2000, glblmsg)
@@ -174,20 +171,37 @@ module.exports = (client) => {
                     })
 
                     await printTemp(page,msg)
-                    await page.mouse.move(500,1000).catch(err=>{
-                        console.log("MOUSE ERROR")
-                        console.log(err)
+
+                    await page.hover("div[class='fXIG0']").then(async ()=>{
+                        await page.mouse.click("div[class='fXIG0']")
+                    },async err => {
+                        console.log("=== COULD NOT FIND DIV ===")
+
+                        if (page.url().indexOf("/login/") !== -1) {
+                            await loginInsta(page).then(async () => {
+
+                                await page.waitForSelector("div[class='fXIG0']",pageWait)
+                                .catch(()=>{
+                                    await browser.close()
+                                    queue.dequeue()
+                                    status.next()
+                                })
+                                await page.mouse.click("div[class='fXIG0']")
+
+                            }, async ()=>{
+                                await browser.close()
+                                queue.dequeue()
+                                status.next()
+                            })
+
+                        }else{
+                            console.log(err)
+                            await browser.close()
+                            queue.dequeue()
+                            status.next()
+                        }
                     })
-                    
-                    await page.evaluate(()=>{
-                        document.getElementsByClassName("fXIG0")[0].click()
-                    }).catch(async (err)=>{
-                        console.log("=== COULD NOT CLICK BUTTON ===")
-                        console.log(err)
-                        await browser.close()
-                        queue.dequeue()
-                        status.next()
-                    })
+
                 }
     
                 // Is the requested video from Tiktok ?
@@ -301,22 +315,31 @@ module.exports = (client) => {
             fs.unlinkSync('temp.png')
         }
     }
-    
-    function randSize() {
-        let x = [1366,1440,1536,1600,1280,1280],
-        y = [768,900,864,900,800,720]
-        return {
-            x: x[Math.floor(Math.random()*x.length)],
-            y: y[Math.floor(Math.random()*y.length)]
+
+    async function loginInsta(page) {
+        let user = "input[name='username']",
+        password = "input[name='password']",
+        logIn    = "div[class~='Igw0E']"
+
+        let isUser = true
+        await page.$(user).catch(err =>{
+            isUser = false
+        })
+
+        if (isUser) {
+            await page.click(user)
+            await page.keyboard.type(USER)
+            await page.click(password)
+            await page.keyboard.type(PASS)
+            await page.click(logIn)
+        }else{
+            logIn = "div[class~='_7UhW9']"
+            await page.click(logIn)
         }
+
+        await page.waitForNavigation({timeout:10000}).then(async()=>{
+            await page.click('button')
+        })
     }
 
-    function agent() {
-        let agents = [
-            'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
-            'Googlebot-Image/1.0',
-            'Mozilla/5.0 (compatible; DuckDuckGo-Favicons-Bot/1.0; +http://duckduckgo.com)'
-        ]
-        return agents[Math.floor(Math.random()*agents.length)]
-    }
 }

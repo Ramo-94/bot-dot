@@ -20,5 +20,7 @@ module.exports = {
     PORT    : process.env.PORT,
     APPLINK : process.env.APPLINK,
     AUTH1   : process.env.AUTH1,
-    AUTH2   : process.env.AUTH2
+    AUTH2   : process.env.AUTH2,
+    USER    : process.env.USER,
+    PASS    : process.env.PASS
 } 
