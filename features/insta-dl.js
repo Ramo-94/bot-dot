@@ -173,7 +173,8 @@ module.exports = (client) => {
                     await printTemp(page,msg)
 
                     await page.hover("div[class='fXIG0']").then(async ()=>{
-                        await page.mouse.click("div[class='fXIG0']")
+                        await page.mouse.down()
+                        await page.mouse.up()
                     },async err => {
                         console.log("=== COULD NOT FIND DIV ===")
 
@@ -181,12 +182,14 @@ module.exports = (client) => {
                             await loginInsta(page).then(async () => {
 
                                 await page.waitForSelector("div[class='fXIG0']",pageWait)
-                                .catch(async ()=>{
+                                .catch(async()=>{
                                     await browser.close()
                                     queue.dequeue()
                                     status.next()
                                 })
-                                await page.mouse.click("div[class='fXIG0']")
+                                await page.hover("div[class='fXIG0']")
+                                await page.mouse.down()
+                                await page.mouse.up()
 
                             }, async ()=>{
                                 await browser.close()
