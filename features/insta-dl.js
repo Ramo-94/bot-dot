@@ -14,11 +14,11 @@
 // limitations under the License.
 // =================================================================
 
-const MSGS           = require('../messages')
-const { USER, PASS } = require("../variables")
-const interpret      = require('../util/interpretCommand')
-const enqueuer       = require('../util/TaskEnqueuer')
-const tempMsg        = require('../util/tempMsg')
+const MSGS                 = require('../messages')
+const { USER, PASS }       = require("../variables")
+const interpret            = require('../util/interpretCommand')
+const enqueuer             = require('../util/TaskEnqueuer')
+const tempMsg              = require('../util/tempMsg')
 
 const {installMouseHelper} = require('../util/installMouseHelper')
 const fs                   = require('fs')
@@ -181,7 +181,7 @@ module.exports = (client) => {
                             await loginInsta(page).then(async () => {
 
                                 await page.waitForSelector("div[class='fXIG0']",pageWait)
-                                .catch(()=>{
+                                .catch(async ()=>{
                                     await browser.close()
                                     queue.dequeue()
                                     status.next()
