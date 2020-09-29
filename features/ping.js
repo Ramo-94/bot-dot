@@ -18,30 +18,24 @@ const Discord  = require('discord.js')
 
 const interpret = require('../util/interpretCommand')
 
-module.exports = (client) => {
+module.exports = async (client, msg, cmd) => {
     
-    client.on('message', async msg => {
+    if (cmd && cmd.base == "ping") {
+        let ping         = Math.abs(msg.createdTimestamp - Date.now()) + 'ms'
+        let rss          = (process.memoryUsage().rss / 1e+6).toFixed(2) + "MB"
+        let guildsNum    = client.guilds.cache.size
+        let usersNum     = userCount()
+        
+    let embed = new Discord.MessageEmbed()
+        .addFields(
+            {name: "Servers", value: guildsNum, inline: true},
+            {name: "Users"  , value: usersNum , inline: true},
+            {name: "Memory" , value: rss      , inline: true},
+            {name: "Ping"   , value: ping     , inline: true}
+        )
 
-        let cmd = interpret(msg.content, false)
-
-        if (cmd && cmd.base == "ping") {
-            let ping         = Math.abs(msg.createdTimestamp - Date.now()) + 'ms'
-            let rss          = (process.memoryUsage().rss / 1e+6).toFixed(2) + "MB"
-            let guildsNum    = client.guilds.cache.size
-            let usersNum     = userCount()
-            
-        let embed = new Discord.MessageEmbed()
-            .addFields(
-                {name: "Servers", value: guildsNum, inline: true},
-                {name: "Users"  , value: usersNum , inline: true},
-                {name: "Memory" , value: rss      , inline: true},
-                {name: "Ping"   , value: ping     , inline: true}
-            )
-
-            await msg.channel.send({embed})
-        }
-
-    })
+        await msg.channel.send({embed})
+    }
 
     function userCount() {
         let total = 0

@@ -14,7 +14,7 @@
 // limitations under the License.
 // =================================================================
 
-module.exports = (client) => {
+module.exports = async (client) => {
 
     client.on('guildMemberAdd', (info)=>{
         if (info.guild.name === "Dot" && !info.user.bot) {

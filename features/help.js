@@ -18,21 +18,15 @@ const Discord      = require('discord.js')
 const { prefix }   = require('../settings')
 const isPrivileged = require('../util/isPrivileged')
 
-module.exports = (client) => {
+module.exports = async (client, msg) => {
 
-    let glblmsg
-
-    client.on('message', async msg => {
-        glblmsg = msg
-        if (isOnlyMention(msg.content) && !msg.author.bot) 
-            await msg.channel.send({embed: makeEmbed()})
-    })
+    if (isOnlyMention(msg.content) && !msg.author.bot) 
+        await msg.channel.send({embed: makeEmbed()})
 
     // Check if the content of the message is just the bot mentioned
     function isOnlyMention(content) {
         return content.replace('!','') === client.user.toString()
     }
-
 
     function makeEmbed() {
         let embed = new Discord.MessageEmbed()

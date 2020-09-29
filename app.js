@@ -15,20 +15,25 @@
 // =================================================================
 
 
-const Discord = require('discord.js')
-const client = new Discord.Client()
+const Discord   = require('discord.js')
+const client    = new Discord.Client()
 const { TOKEN } = require('./variables')
+const interpret = require('./util/interpretCommand')
 
-const features = [
-                    require('./features/blockBotCommand'), require('./features/antiRaid'),
-                    require('./features/insta-dl')       , require('./features/help')    ,
-                    require('./features/ping')
-                 ]
+const features  = [
+                    require('./features/blockBotCommand')    , require('./features/antiRaid'),
+                    require('./features/downloader/insta-dl'), require('./features/help')    ,
+                    require('./features/ping'), require('./features/test')
+                  ]
 
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`)
 })
 
-features.map( feature => feature(client) )
+client.on('message', async msg =>{
+  let cmd = interpret(msg)
+  features.forEach( async feature => await feature(client, msg, cmd) )
+  return true
+})
 
 client.login(TOKEN)
