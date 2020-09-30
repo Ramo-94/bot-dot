@@ -45,7 +45,7 @@ module.exports = async (client, msg, cmd) => {
     proxies = proxies[Math.floor(Math.random()*proxies.length)]
 
     // Browser and page launch options
-    let brwsrOptns = {headless: false, args:[
+    let brwsrOptns = {headless: true, args:[
          '--no-sandbox', '--disable-setuid-sandbox',
          `--proxy-server=${proxies}` 
         ]}
