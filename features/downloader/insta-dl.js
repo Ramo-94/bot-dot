@@ -27,6 +27,7 @@ const StealthPlugin        = require('puppeteer-extra-plugin-stealth')
 const getUser              = require('../../util/getUser')
 const Discord              = require('discord.js')
 const { execSync }         = require('child_process')
+const proxylist            = require("proxylist")
 
 
 module.exports = async (client, msg, cmd) => {
@@ -37,14 +38,24 @@ module.exports = async (client, msg, cmd) => {
     // Setup download status updates
     let status
     let printPage
-        
+    
+    // Pick a proxy
+    let proxies
+    await proxylist.main().then(list => proxies = list)
+    proxies = proxies[Math.floor(Math.random()*proxies.length)]
+
     // Browser and page launch options
-    let brwsrOptns = {headless: false, args:[ '--no-sandbox', '--disable-setuid-sandbox' ]}
+    let brwsrOptns = {headless: false, args:[
+         '--no-sandbox', '--disable-setuid-sandbox',
+         `--proxy-server=${proxies}` 
+        ]}
+    
     // Options object for page nav timeouts
     let pageWait = {timeout: 0, waitUntil: 'networkidle2'}
-    if (typeof cmd.args !== "undefined")
-        if (cmd.args[1])
-            printPage = (cmd.args[1] == "print" ? true : false)
+
+    if (typeof cmd.args !== "undefined" && cmd.args[1])
+        printPage = (cmd.args[1] == "print" ? true : false)
+    
     
     // Download command
     if (cmd && cmd.base === "dl" && !msg.author.bot) {
