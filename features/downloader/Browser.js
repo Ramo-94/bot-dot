@@ -16,7 +16,7 @@
 
 const tempMsg = require('../../util/tempMsg')
 const MSGS = require('../../messages')
-const { CHROME } = require('../../variables')
+const { GOOGLE_CHROME_SHIM } = require('../../variables')
 const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
@@ -25,7 +25,7 @@ const { execSync } = require('child_process')
 
 module.exports = class Browser {
     #proxylist = []
-    #settings = { executablePath: CHROME, args: ['--no-sandbox', '--disable-setuid-sandbox'] }
+    #settings = { executablePath: GOOGLE_CHROME_SHIM, args: ['--no-sandbox', '--disable-setuid-sandbox'] }
     #counter = 0
     #msg = {}
     #callback
