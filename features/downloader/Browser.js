@@ -67,6 +67,7 @@ module.exports = class Browser {
         console.log("================")
         console.log("ERROR on Browser")
         if (this.#proxy) console.log("Proxy: ", this.#proxy)
+        console.log("Page: ", this.#page.url())
         console.log("Message: ", error.message)
         console.log("================")
     }
