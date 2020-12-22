@@ -15,7 +15,7 @@
 // =================================================================
 
 const Discord = require('discord.js')
-const { prefix } = require('../settings')
+const { PREFIX } = require('../variables')
 const isPrivileged = require('../util/isPrivileged')
 
 module.exports = async (client, msg) => {
@@ -30,7 +30,7 @@ module.exports = async (client, msg) => {
 
     function makeEmbed() {
         let embed = new Discord.MessageEmbed()
-            .setTitle(`Prefix: ${prefix}`)
+            .setTitle(`Prefix: ${PREFIX}`)
             .setAuthor("Help - Dot-bot")
             .setDescription("Here's what I can do: ")
             .addFields(

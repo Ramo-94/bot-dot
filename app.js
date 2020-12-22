@@ -22,7 +22,7 @@ const interpret = require('./util/interpretCommand')
 // Main features
 const features = [
   require('./features/blockBotCommand'),
-  require('./features/downloader/insta-dl'),
+  require('./features/downloader/dl'),
   require('./features/help'),
   require('./features/ping')
 ]

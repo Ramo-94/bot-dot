@@ -14,7 +14,7 @@
 // limitations under the License.
 // =================================================================
 
-const { prefix } = require('../settings')
+const { PREFIX } = require('../variables')
 
 module.exports   = (msg) => {
 
@@ -27,7 +27,7 @@ module.exports   = (msg) => {
     let base     = ""
     let args     = []
 
-    if (sections[0] !== prefix)
+    if (sections[0] !== PREFIX)
         return false
     
     base = sections[1]
