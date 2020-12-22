@@ -53,6 +53,7 @@ module.exports = async (client, msg, cmd) => {
                         embed: downloadEmbed
                     })
                     browser.cleanup()
+                    browser.close()
                     browser = null
                 })
 

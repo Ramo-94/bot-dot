@@ -83,7 +83,7 @@ module.exports = class Browser {
         if (messages.includes(message)) {
             console.log("Critical error")
             this.#log(error)
-            await this.#close()
+            await this.close()
 
             if (message === messages[1])
                 tempMsg(MSGS.COMPRESSION_LARGE, 5000, this.#msg)
@@ -95,12 +95,12 @@ module.exports = class Browser {
             if (this.retry && this.#counter < 3) {
                 this.#log(error)
                 console.log("Retrying", this.#counter)
-                await this.#close()
+                await this.close()
                 this.#counter++
                 await this.get(this.link)
             } else {
                 this.#log(error)
-                await this.#close()
+                await this.close()
             }
 
         }
@@ -132,7 +132,6 @@ module.exports = class Browser {
                     }
 
                     this.#callback()
-                    await this.#close()
 
                 } catch (error) { console.log("closing") }
 
@@ -140,7 +139,7 @@ module.exports = class Browser {
         })
     }
 
-    #close = async () => {
+    close = async () => {
         await this.#page.removeAllListeners()
         let pages = await this.#browser.pages().catch(() => { })
         await Promise.all(pages.map(page => page.close().catch(() => { })))
@@ -154,7 +153,7 @@ module.exports = class Browser {
             if (err) {
                 this.#handler(err)
                 tempMsg(MSGS.COMPRESSION_ERROR, 2000, this.#msg)
-                await this.#close()
+                await this.close()
                 queue.dequeue()
             }
         })
@@ -163,7 +162,7 @@ module.exports = class Browser {
         let size = (fs.statSync("./video.mp4")["size"] / 1e+6).toFixed(2)
         if (size > 8) {
             tempMsg(MSGS.COMPRESSION_LARGE, 2000, this.#msg)
-            await this.#close()
+            await this.close()
         }
     }
 
