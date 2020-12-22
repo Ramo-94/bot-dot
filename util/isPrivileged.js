@@ -14,6 +14,7 @@
 // limitations under the License.
 // =================================================================
 
+// Define two roles that denote privilege
 const { AUTH1, AUTH2 } = require('../variables')
 const getUser = require('./getUser')
 

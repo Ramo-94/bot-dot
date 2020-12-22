@@ -40,7 +40,7 @@ module.exports = async (client, msg, cmd) => {
     function userCount() {
         let total = 0
         client.guilds.cache.mapValues(e => { 
-            e.members.cache.mapValues(e=>{ if(!e.user.bot) total++})
+            e.members.cache.mapValues(e => { if (!e.user.bot) total++ })
         })
         return total
     }

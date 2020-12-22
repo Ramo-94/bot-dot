@@ -14,34 +14,33 @@
 // limitations under the License.
 // =================================================================
 
-const Discord   = require('discord.js')
-const client    = new Discord.Client()
+const Discord = require('discord.js')
+const client = new Discord.Client()
 const { TOKEN } = require('./variables')
 const interpret = require('./util/interpretCommand')
 
 // Main features
-const features  = [
-                    require('./features/blockBotCommand')    ,
-                    require('./features/downloader/insta-dl'), require('./features/help')    ,
-                    require('./features/ping'), require('./features/test')
-                  ]
+const features = [
+  require('./features/blockBotCommand'),
+  require('./features/downloader/insta-dl'),
+  require('./features/help'),
+  require('./features/ping')
+]
 
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`)
 })
 
-// Main listener
-client.on('message', async msg =>{
+// Main listeners
+client.on('message', async msg => {
   let cmd = interpret(msg)
-  features.forEach( async feature => await feature(client, msg, cmd) )
+  features.forEach(async feature => await feature(client, msg, cmd))
   return true
 })
 
 // Secondary listeners
 function startListeners() {
   let antiRaid = require('./features/antiRaid')(client)
-}
-
-startListeners()
+} startListeners()
 
 client.login(TOKEN)

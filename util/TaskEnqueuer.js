@@ -29,7 +29,7 @@ module.exports = class TaskEnqueuer {
     }
 
     enqueue(message) {
-        if (!this.__isActiveQueueFull()) 
+        if (!this.__isActiveQueueFull())
             this.#activeQueue.unshift(message)
         else
             this.#queue.unshift(message)
@@ -44,8 +44,7 @@ module.exports = class TaskEnqueuer {
                 popped.emitted = true
                 this.run(popped)
             }
-            else
-                break
+            else break
         }
     }
 

@@ -21,6 +21,5 @@ module.exports = {
     APPLINK : process.env.APPLINK,
     AUTH1   : process.env.AUTH1,
     AUTH2   : process.env.AUTH2,
-    USER    : process.env.USER,
-    PASS    : process.env.PASS
+    CHROME  : process.env.CHROME
 } 
