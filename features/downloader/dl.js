@@ -74,7 +74,7 @@ function regTests(test) {
         // t for tiktok
 
         case "tNormal":
-            return /^(https:\/\/|www.|https:\/\/www.|)tiktok.com(\/\@[\w\d]+)(\/video)(\/[\w\d]+)\?*[\w\d]*/g
+            return /^(https:\/\/|www.|https:\/\/www.|)tiktok.com(\/\@[\w\d.]+)(\/video)(\/[\w\d]+)\?*[\w\d]*/g
 
         case "tVm":
             return /^(https:\/\/)?vm.tiktok.com\/([\w\d]+)\??[\w\d]*/g
