@@ -21,6 +21,7 @@ const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
 const fs = require('fs')
+const Discord = require('discord.js')
 const { execSync } = require('child_process')
 
 module.exports = class Browser {
@@ -28,16 +29,18 @@ module.exports = class Browser {
     #settings = { executablePath: GOOGLE_CHROME_SHIM, args: ['--no-sandbox', '--disable-setuid-sandbox'] }
     #counter = 0
     #msg = {}
+    #print
     #callback
     #proxy
     #page
     #browser
 
-    constructor(retry, headless, proxylist, msg) {
+    constructor(retry, headless, proxylist, msg, print) {
         //Type check and guarantee
         this.#proxylist = Array.isArray(proxylist) && proxylist.length > 0 ? proxylist : []
         this.retry = retry == true ? true : false
         this.headless = headless == true ? true : false
+        this.#print = print == true ? true : false
         this.#msg = msg
     }
 
@@ -47,7 +50,7 @@ module.exports = class Browser {
         this.#browser = await puppeteer.launch(this.#settings).catch(this.#handler)
         this.#page = await this.#browser.newPage()
         this.#listen()
-        await this.#page.goto(this.link, { timeout: 0, waitUntil: "networkidle2" }).catch(this.#handler)
+        await this.#page.goto(this.link, { timeout: 10000, waitUntil: "networkidle2" }).catch(this.#handler)
     }
 
     onDownloaded = (func) => {
@@ -123,6 +126,7 @@ module.exports = class Browser {
                 try {
 
                     let size = (buf.byteLength / 1e+6).toFixed(2) // size in MB
+                    if (this.#print) this.#printPage()
                     console.log("size: ", size)
                     fs.writeFileSync("./video.mp4", buf)
 
@@ -170,5 +174,21 @@ module.exports = class Browser {
     cleanup = () => {
         // If the video exists, remove it
         if (fs.existsSync("./video.mp4")) fs.unlinkSync("./video.mp4")
+    }
+
+    #printPage = async () => {
+        if (!this.#page.isClosed()) {
+            console.log("Printing page")
+    
+            let url = await this.#page.url()
+            await this.#msg.channel.send(url)
+            await this.#page.screenshot({path: 'temp.png'})
+            let tempEmbed = new Discord.MessageEmbed()
+            tempEmbed
+                .attachFiles('temp.png')
+                .setImage("attachment://temp.png")
+            await this.#msg.channel.send(tempEmbed)
+            fs.unlinkSync('temp.png')
+        }
     }
 }

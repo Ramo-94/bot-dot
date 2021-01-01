@@ -30,8 +30,11 @@ module.exports = async (client, msg, cmd) => {
     // Download command
     if (cmd && cmd.base === "dl" && !msg.author.bot) {
 
-        if (!queue.isFull()) {
+        if (typeof cmd.args !== "undefined" && cmd.args[1])
+            var printPage = (cmd.args[1] == "print" ? true : false)
 
+        if (!queue.isFull()) {
+            
             // If the link is a tiktok link
             if (regTests("tNormal").test(cmd.args[0]) || regTests("tVm").test(cmd.args[0]) || regTests("tForyou").test(cmd.args[0])) {
 
@@ -45,7 +48,7 @@ module.exports = async (client, msg, cmd) => {
                     .setURL(cmd.args[0])
                     .setColor(getUser(msg, client).displayColor)
 
-                let browser = new Browser(false, true, [], msg)
+                let browser = new Browser(false, true, [], msg, printPage)
 
                 browser.onDownloaded(async () => {
                     await msg.channel.send({
