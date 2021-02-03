@@ -48,7 +48,7 @@ module.exports = async (client, msg, cmd) => {
                     .setURL(cmd.args[0])
                     .setColor(getUser(msg, client).displayColor)
 
-                let browser = new Browser(false, true, [], msg, printPage)
+                let browser = new Browser(false, false, [], msg, printPage)
 
                 browser.onDownloaded(async () => {
                     await msg.channel.send({

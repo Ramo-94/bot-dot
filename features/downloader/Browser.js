@@ -50,7 +50,7 @@ module.exports = class Browser {
         this.#browser = await puppeteer.launch(this.#settings).catch(this.#handler)
         this.#page = await this.#browser.newPage()
         this.#listen()
-        await this.#page.goto(this.link, { timeout: 10000, waitUntil: "networkidle2" }).catch(this.#handler)
+        await this.#page.goto(this.link, { waitUntil: "networkidle2" }).catch(this.#handler)
     }
 
     onDownloaded = (func) => {
@@ -76,38 +76,39 @@ module.exports = class Browser {
     }
 
     #handler = async (error) => {
-        let message = error.message
-        let messages =
-            [
-                "Navigation failed because browser has disconnected!",
-                // Resource too big
-                "Protocol error (Network.getResponseBody): Request content was evicted from inspector cache"
-            ]
+        console.log(error.message)
+        // let message = error.message
+        // let messages =
+        //     [
+        //         "Navigation failed because browser has disconnected!",
+        //         // Resource too big
+        //         "Protocol error (Network.getResponseBody): Request content was evicted from inspector cache"
+        //     ]
 
-        if (messages.includes(message)) {
-            console.log("Critical error")
-            this.#log(error)
-            await this.close()
+        // if (messages.includes(message)) {
+        //     console.log("Critical error")
+        //     this.#log(error)
+        //     await this.close()
 
-            if (message === messages[1])
-                tempMsg(MSGS.COMPRESSION_LARGE, 5000, this.#msg)
-            else
-                tempMsg(MSGS.NAV_ERROR, 5000, this.#msg)
+        //     if (message === messages[1])
+        //         tempMsg(MSGS.COMPRESSION_LARGE, 5000, this.#msg)
+        //     else
+        //         tempMsg(MSGS.NAV_ERROR, 5000, this.#msg)
 
-        } else {
+        // } else {
 
-            if (this.retry && this.#counter < 3) {
-                this.#log(error)
-                console.log("Retrying", this.#counter)
-                await this.close()
-                this.#counter++
-                await this.get(this.link)
-            } else {
-                this.#log(error)
-                await this.close()
-            }
+        //     if (this.retry && this.#counter < 3) {
+        //         this.#log(error)
+        //         console.log("Retrying", this.#counter)
+        //         await this.close()
+        //         this.#counter++
+        //         await this.get(this.link)
+        //     } else {
+        //         this.#log(error)
+        //         await this.close()
+        //     }
 
-        }
+        // }
     }
 
     #listen = () => {
@@ -138,7 +139,7 @@ module.exports = class Browser {
 
                     this.#callback()
 
-                } catch (error) { console.log("closing") }
+                } catch (error) { this.#handler(error) }
 
             }
         })
