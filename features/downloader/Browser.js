@@ -147,9 +147,9 @@ module.exports = class Browser {
 
     close = async () => {
         await this.#page.removeAllListeners()
-        let pages = await this.#browser.pages().catch(() => { })
-        await Promise.all(pages.map(page => page.close().catch(() => { })))
-        await this.#browser.close().catch(() => { })
+        let pages = await this.#browser.pages()
+        await Promise.all(pages.map(page => page.close()))
+        await this.#browser.close()
     }
 
     #compress = async () => {
