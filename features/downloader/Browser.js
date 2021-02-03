@@ -122,6 +122,9 @@ module.exports = class Browser {
 
             if (response.url() === req) {
 
+                console.log("Request: " + req)
+                console.log("Response: " + response)
+
                 let buf = await response.buffer().catch(this.#handler)
 
                 try {
