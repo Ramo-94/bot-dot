@@ -26,7 +26,7 @@ const { execSync } = require('child_process')
 
 module.exports = class Browser {
     #proxylist = []
-    #settings = { executablePath: GOOGLE_CHROME_SHIM, args: ['--no-sandbox', '--disable-setuid-sandbox'] }
+    #settings = { executablePath: GOOGLE_CHROME_SHIM, args: ['--no-sandbox', '--single-process', '--disable-setuid-sandbox'] }
     #counter = 0
     #msg = {}
     #print
